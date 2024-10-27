@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+REPO=$1
+export AWS_REGION=eu-central-1
+
+if [ "$1" == "--help" ]; then
+    echo "$0 devenv"
+    echo "awsp AWS_PROFILE ; $0"
+    exit 1
+fi
+
+SW="$AWS_PROFILE"
+
+if [ "$1" == "devenv" ];then
+    SW="devenv"
+fi
+
+case $SW in
+  cloud-prod|paas-prod|paas-test-prod)
+    AWS_ACCOUNT_ID="435571809706"
+    ;;
+  cloud-int|paas-int|paas-test-int)
+    AWS_ACCOUNT_ID="413397719283"
+    ;;
+  cloud-dev|paas-dev|paas-test-dev)
+    AWS_ACCOUNT_ID="968305543956"
+    ;;
+  cloud-dev)
+    AWS_ACCOUNT_ID="968305543956"
+    ;;
+  devenv|devenv-dl-paas)
+    echo "*** DEVENV ***"
+    AWS_ACCOUNT_ID=463994711582
+    ;;
+  *)
+    echo "ERROR: invald AWS_PROFILE = ${AWS_PROFILE}"
+    exit 1    
+    ;;
+esac
+
+#aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REP0}
+
+#does not expand the variables before printing
+set -vx
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com

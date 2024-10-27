@@ -1,0 +1,6 @@
+#!/bin/bash
+
+#lxc exec vpn -- su - lg bash -c "firefox" &
+lxc exec vpn -- su - lg bash -c "firefox" &
+
+

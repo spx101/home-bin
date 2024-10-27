@@ -1,0 +1,79 @@
+#!/bin/bash
+
+#set -o errexit
+#set -o nounset
+
+usage() {
+    echo "$0 usage:" && grep " .)\ #" $0;
+    echo "example: $0 -p <PATH_TO_FILES> -s <SUFFIX> -b <PACK-SIZE_IN_BYTES>"
+    echo "split-size -p /Pictures -s 2022 -b \$((1024*1024*400))"
+    exit 0; 
+}
+
+[ $# -eq 0 ] && usage
+
+while getopts ":hp:s:b:" arg; do
+case $arg in
+    p) # path
+    path=${OPTARG}
+    if [ ! -d "$path" ]; then
+        echo "invalid <PATH>"
+        exit 1
+    fi
+    ;;
+
+    s) # suffix
+    suffix=${OPTARG}
+    ;;
+
+    b) # pack-size in bytes
+    size=${OPTARG}
+    ;;
+
+    h | *)
+        echo "help:"
+        usage
+        exit 0
+    ;;
+    esac
+done
+################################
+# AWK scripts                  #
+################################
+read -d '' scriptVariable << 'EOF'
+BEGIN {
+    sum=0;
+    tar=0;
+}
+{
+    if(NF==2){next;}
+
+    sum=sum+$6;
+    if(sum>max_size){
+        tar=tar+1;
+        sum=$6;
+    };    
+    print path"/"$10" "suffix"-"tar".tar ";
+}
+END{
+    sum=0;
+}
+EOF
+
+
+################################
+# End of AWK Scripts           #
+################################
+#echo "$scriptVariable"
+#awk "$scriptVariable" ${inputfile}
+#echo xxx
+tmpfile=$(mktemp /tmp/split-size.XXXXXX)
+ls -A -l -s $path | awk -v suffix="$suffix" -v max_size="$size" -v path="$path" "$scriptVariable" > $tmpfile
+
+tarfiles=$(cat $tmpfile | awk '{print $2}' | sort | uniq)
+
+for i in ${tarfiles};do
+    grep $i $tmpfile | awk '{print $1}' > $i.filelist
+done
+
+rm $tmpfile

@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+
+copy="no"
+LOC=$(echo $0 | cut -d'-' -f2)
+HOST_PROD="bastion.paas-prod.aws.dreamlab"
+HOST_INT="bastion.paas-int.aws.dreamlab"
+HOST_DEV="bastion.paas-dev.aws.dreamlab"
+
+usage() {
+    echo "$0 usage:" && grep " .)\ #" $0;
+    echo "example: $0 -c"
+    echo "example: $0 -h"
+    echo "-------------------------------"
+    echo "PROD : $HOST_PROD"
+    echo "INT  : $HOST_INT"
+    echo "DEV  : $HOST_DEV"
+    echo "-------------------------------"
+    exit 0;
+}
+
+#[ $# -eq 0 ] && usage
+
+while getopts ":hc" arg; do
+  case $arg in
+    c) # copy config
+      copy="yes"
+      ;;
+    h | *)
+      echo "help:"
+      usage
+      exit 0
+      ;;
+  esac
+done
+
+case $LOC in
+  prod)
+    HOST=$HOST_PROD
+    ;;
+  int)
+    HOST=$HOST_INT
+    ;;
+  dev)
+    HOST=$HOST_DEV
+    ;;
+  *)
+    echo "use: bastion-prod, bastion-int or bastion-dev"
+    exit 1
+    ;;
+esac
+
+#if [ "$copy" == "yes" ]; then
+#    echo "PAAS_LOC=$LOC" > ~/.bashrc-bastion-myenv
+#    rsync -avq -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ~/.bashrc-bastion-myenv lglowacki2@$HOST:/home/lglowacki2/.my_env
+#    rsync -avq -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ~/.bashrc-bastion lglowacki2@$HOST:/home/lglowacki2/.bashrc
+#fi
+
+
+ssh -A lglowacki2@$HOST
+
+#alias bastion-prod="ssh -A lglowacki2@bastion.paas-prod.aws.dreamlab"
+#alias bastion-int="ssh -A lglowacki2@bastion.paas-int.aws.dreamlab"
+#alias bastion-dev="ssh -A lglowacki2@bastion.paas-dev.aws.dreamlab"

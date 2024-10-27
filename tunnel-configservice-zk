@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -o pipefail
+set -e
+#set -x
+
+AWS_PROFILE=cloud-prod kubectl -n configuration port-forward pod/zookeeper-0 2181
+
+# ---------------------------------
+#set -e
+#echo "test connect to CDE ..."
+#nc -w 2 -v cde 22
+# ---------------------------------
+
+
+#PORT=2181
+#ZK_HOST='zookeeper-configservice-st-cdd2c6346c7e7292.elb.eu-central-1.amazonaws.com'
+
+#ssh -L $PORT:$ZK_HOST:$PORT -p 22 lglowacki2@cde <<EOF
+#echo "WARNING: try connect to $ZK_HOST $PORT"
+#while true;do
+#nc -vz $ZK_HOST $PORT
+#sleep 10;
+#done
+#EOF
+
+#ssh -N -L 1$PORT:$RDSHOST:$PORT -p 22 lglowacki2@bastion.paas-int.aws.dreamlab
+
+

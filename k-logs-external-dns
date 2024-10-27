@@ -1,0 +1,5 @@
+#!/bin/bash
+
+kubectl -n kube-system get pods -l "app=external-dns"
+
+kubectl -n kube-system logs -l "app=external-dns" -f

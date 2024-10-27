@@ -1,0 +1,6 @@
+#!/bin/sh
+
+#xfreerdp /u:l.glowacki@hotmail.com /p:$(gpg -d ~/.passwords/pass_r930.gpg) /size:1920x1080 +wallpaper -themes /v:192.168.88.30 &
+
+
+xfreerdp /u:l.glowacki@hotmail.com /p:$(gpg -d ~/.passwords/pass_r930.gpg) /size:1920x1080 +wallpaper -themes +auto-reconnect -glyph-cache /floatbar  /v:192.168.88.30 /cert-ignore &

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ps aux | grep chrome | grep -E 'https://aka.ms/mstfw\?login_hint_safe.*=.*ringieraxelspringer.pl' 1>/dev/null \
+    || { /usr/bin/notify-send --urgency=normal -i "messagebox_info" "uruchomienie teams" -t 10000 && /opt/google/chrome/chrome --app=https://aka.ms/mstfw?login_hint_safe=Lukasz.Glowacki@ringieraxelspringer.pl & }

@@ -1,0 +1,1 @@
+/home/lg/scripts/bash/aws-ec2-list.sh

@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+
+import json
+import sys
+
+for line in sys.stdin:
+    a = json.loads(line)
+
+
+keys={
+        'host'      : 'PGHOST',
+        'username'  : 'PGUSERNAME',
+        'password'  : 'PGPASSWORD',
+        'port'      : 'PGPORT',
+        'dbname'    : 'PGDATABASE'
+}
+
+
+print("=========================")
+for key, env in keys.items():
+    value = a[key]
+    print("export {}={}".format(env, value))
+
+print("psql \"host=$PGSHOST port=$PGPORT sslmode=verify-full sslrootcert=rds-combined-ca-bundle.pem dbname=$PGDATABASE user=$PGUSERNAME\" --no-align")
+
+print("=========================")

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+ns=$1
+if [ -z "$ns" ];then
+    echo "flux-reconcile <NAMESPACE>"
+    exit 1
+fi
+
+
+function __sep__() {
+    echo "----------------------------------------------------------------"
+}
+
+# set -x
+
+flux -n $ns reconcile source git $ns
+
+__sep__
+
+flux -n $ns reconcile kustomization $ns
+
+__sep__
+
+flux -n $ns get helmreleases
+
+hr=$(flux -n $ns get helmreleases | sed '1d' | awk '{print $1}')
+
+__sep__
+
+for i in $hr; do
+    flux -n $ns reconcile helmrelease $i
+done
+
+__sep__
+
+kubectl -n $ns get hr

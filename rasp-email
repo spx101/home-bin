@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# zawartosci schowka mozna uzyc tylko raz
+
+echo "lukasz.glowacki@ringieraxelspringer.pl" | xclip -l 1 -selection clipboard
+echo "lukasz.glowacki@ringieraxelspringer.pl"
+
+#echo "copied to clipboard"
+#for i in `seq 1 20`; do
+#    sleep 0.5
+#    echo -n "$i,"
+#done
+#echo "123" | xclip -selection clipboard
+
+
+# pobranie wartosci ze schowka
+#xclip -o -sel clip
+

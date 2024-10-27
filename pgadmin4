@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+docker pull dpage/pgadmin4
+
+docker stop pgadmin4
+
+docker run --name pgadmin4 \
+    -p 80:80 \
+    -e 'PGADMIN_DEFAULT_EMAIL=user@domain.com' \
+    -e 'PGADMIN_DEFAULT_PASSWORD=SuperSecret' \
+    -d dpage/pgadmin4 \
+    -v /home/lg/.pgadmin/servers.json:/pgadmin4/servers.json \
+    -d dpage/pgadmin4
+#    -v /private/var/lib/pgadmin:/var/lib/pgadmin \
+#    -d dpage/pgadmin4
+
+
+echo ""
+echo "http://localhost:5050"

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# cp /snap/core22/current/usr/lib/x86_64-linux-gnu/libunistring.so.2 /opt/pulsesecure/lib
+
+#GTK_DEBUG=all 
+LD_LIBRARY_PATH="/opt/pulsesecure/lib:/snap/gnome-42-2204/176/usr/lib/:/snap/gnome-42-2204/176/usr/lib/x86_64-linux-gnu/" /opt/pulsesecure/bin/pulseUI

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+set -x
+sudo etherwake  -i enx381428b7c3ff E8:E0:B7:E4:6B:67

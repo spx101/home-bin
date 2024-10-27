@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# ref: https://developer.ringieraxelspringer.tech/AWS_Provider/howto/develop-template.html
+
+#. ./vars.sh
+
+if [ -z "$1" ]; then
+    echo "$0 KEY"
+    exit 0
+fi
+
+STACKNAME=$1
+
+LOOP="$2"
+
+
+status=$(aws cloudformation describe-stacks --stack-name $STACKNAME | jq -r '.[] | .[] | .StackStatus')
+echo "$status" | ts
+while [ "$status" == "UPDATE_IN_PROGRESS" ] || [ "$status" == "CREATE_IN_PROGRESS" ] || [ "$LOOP" == "-l" ];do
+    sleep 2
+    status=$(aws cloudformation describe-stacks --stack-name $STACKNAME | jq -r '.[] | .[] | .StackStatus')
+    echo "$status" | ts
+done

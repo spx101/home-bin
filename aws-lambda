@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -o pipefail
+
+if [ ! -z "$1" ]; then
+    
+    aws lambda get-function --function-name $1 | jq -r  
+
+else
+
+    aws lambda list-functions --query 'Functions[*].FunctionName | sort(@)' 
+
+fi
+
+

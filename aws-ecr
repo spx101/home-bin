@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -o pipefail
+
+SCRIPT=$(readlink -f $0)
+SCRIPTPATH=`dirname $SCRIPT`
+md5=$(echo "${SCRIPT}${AWS_PROFILE}" | md5sum - | cut -d' ' -f1)
+tmpfile="/ram/$md5"
+
+#find /ram -type f -name "*$md5*" -mmin +1 -print
+find /ram -type f -name "*$md5*" -mmin +2 -delete
+
+function fetch {
+  if [ ! -f "$1" ]; then
+    aws ecr describe-repositories --no-cli-pager > $1
+  fi
+}
+
+function list {
+    fetch $1
+    cat $1 | jq -r '.repositories[].repositoryName' | sort
+    #cat $1 | jq -r '.repositories[].repositoryUri' | sort
+}
+
+function refresh {
+    rm -f $tmpfile
+    fetch $tmpfile
+}
+
+if [ "$1" == "--refresh" ] || [ "$1" == "-r" ]; then
+    refresh $tmpfile
+    echo "refreshed $tmpfile"
+    exit 0
+fi
+
+fetch $tmpfile
+
+if [ ! -z "$1" ]; then
+  repositoryUri=$(cat $tmpfile | jq -r ".repositories[] | select(.repositoryName==\"$1\") | .repositoryUri")
+  aws ecr list-images --no-cli-pager --repository-name $1 | jq -r '.imageIds[].imageTag' | sort -r | awk -v ru=$repositoryUri  '{print ru":"$1}'
+  aws ecr list-images --no-cli-pager --repository-name $1
+
+else
+    list $tmpfile
+fi

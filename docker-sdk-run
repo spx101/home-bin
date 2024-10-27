@@ -1,0 +1,21 @@
+#!/bin/bash
+
+name=$1
+
+if [ -z "$name" ];then
+    echo "$0 <NAME>"
+    exit 1
+fi
+
+#echo "### Running $i ..."
+
+docker rm -f ${name}
+
+docker run  --rm -it -d --name ${name} --mount type=bind,source=$(pwd),target=/code --hostname ${name} --workdir /code --entrypoint= 463994711582.dkr.ecr.eu-central-1.amazonaws.com/awsp-paas-sdk/node:v14 bash
+
+
+echo "docker exec $name npm install"
+
+echo "docker exec $name npm test"
+
+

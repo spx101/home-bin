@@ -1,0 +1,16 @@
+#!/bin/bash
+
+node=$1
+
+if [ -z "$node" ]; then
+    echo "missing node name"
+    exit 1
+fi
+
+kubectl cordon $node
+kubectl drain --ignore-daemonsets --delete-emptydir-data $node
+
+sleep 2
+
+kubectl delete node $node
+

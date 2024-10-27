@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+kubectl -n kube-system logs -l "app.kubernetes.io/name=karpenter" -c controller -f

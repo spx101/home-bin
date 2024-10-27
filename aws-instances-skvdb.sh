@@ -1,0 +1,1 @@
+/home/lg/scripts/aws/aws-instances-skvdb.sh

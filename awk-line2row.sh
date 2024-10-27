@@ -1,0 +1,1 @@
+/home/lg/scripts/bash/awk-line2row.sh

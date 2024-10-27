@@ -1,0 +1,57 @@
+#!/bin/bash
+
+killall -u $USER xclip 1>/dev/null 2>/dev/null
+
+ZASZYFROWANY="$HOME/zaszyfrowany-rasp"
+
+#set -x
+set -e
+# zawartosci schowka mozna uzyc tylko raz
+
+# PRIMARY selection is typically used by e.g. terminals when selecting text and pasting it by pressing middle mouse button. 
+# As in selected text is in Primary Clipboard without any explicit copy action taking place. Quick-Copy is a good name for it. 
+# (Not limited to terminal emulators, but as an example.)
+# CLIPBOARD is primarily used in connection with MS Windows-style clipboard operations. Select+Copy. The data resides in the buffer.
+
+# tutaj jest uzywany clipboard
+app="rasp-password"
+SEL="clipboard"
+ICON="$HOME/icons"
+
+# to nie bedzie działać w $(skrypt) bo uruchamiany jest proces oczekujacy xclip w tle
+#xclip -sel clip < /dev/null
+#cat /dev/null|xclip -i
+#echo "---" | xclip -verbose -selection $SEL -i
+#exit 1
+
+
+FILE_ASC="$ZASZYFROWANY/passwords/$1.asc"
+if [ ! -f "$FILE_ASC" ]; then
+    for i in $(ls $ZASZYFROWANY/passwords/); do echo $i | sed 's/.asc//g'; done
+
+    notify-send -t 4000 -a $app -i $ICON/dialog-error.png "brak pliku"
+    exit 1
+fi
+
+#notify-send -t 2000 -a $app -i $ICON/dialog-password.png "waiting for yubikey"
+
+if [ "$1" == "-v" ]; then
+    gpg -d $FILE_ASC 2>/dev/null #| sed -n 1p | tr -d '\n'
+else
+    gpg -d $FILE_ASC 2>/dev/null | sed -n 1p | tr -d '\n' | nohup xclip -silent -l 2 -selection ${SEL} 1>/dev/null 2>/dev/null
+    notify-send -t 2000 -a $app -i $ICON/process-completed.png "copied"
+    xdotool key ctrl+v
+fi
+
+exit 0
+
+
+#echo "copied to clipboard"
+#for i in `seq 1 20`; do
+#    sleep 0.5
+#    echo -n "$i,"
+#done
+#echo "123" | xclip -selection clipboard
+# pobranie wartosci ze schowka
+#xclip -o -sel clip
+

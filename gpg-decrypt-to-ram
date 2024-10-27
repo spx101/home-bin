@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+#set -x
+
+PLIK=$1
+if [ ! -f $PLIK ]; then
+    PLIK=$(pwd)/$PLIK
+
+    if [ ! -f $PLIK ]; then
+        echo "Brak pliku $PLIK"
+        exit 1
+    fi
+
+fi
+
+DST=$(basename $PLIK | sed 's/.asc//g')
+
+#echo $DST
+#exit 1
+#find $(pwd) -type f -name "$1" | while read src; do
+#dst=$(basename $src | sed 's/.asc//g')
+#echo "$src => $dst"
+
+if [ -z "$DST" ]; then
+    echo "jakis nieznany error"
+    exit 1
+fi
+
+gpg --no-verbose --yes --no-tty -q -d -o $HOME/ram/$DST $PLIK 2>/dev/null
+echo "decrypted to $HOME/ram/$DST"
+
+#done

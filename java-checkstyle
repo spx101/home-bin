@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# https://checkstyle.sourceforge.io/cmdline.html
+
+# INFO: 47092246 means Checkstyle v8.45
+
+working_dir=$1
+
+[ ! -d "$1" ] && { echo "directory not exists"; exit 1; }
+
+
+URL="$(curl -Ls https://api.github.com/repos/checkstyle/checkstyle/releases/47092246 | grep -Eo \"https://.+?-all.jar\")"
+curl -Lso ${HOME}/bin/checkstyle.jar $URL
+
+#curl -o checkstyle_checks.xml https://raw.githubusercontent.com/checkstyle/checkstyle/checkstyle-8.45/config/checkstyle_checks.xml
+
+java -jar ${HOME}/bin/checkstyle.jar ${working_dir} \
+    -c /home/lg/stash/SMDT/bamboo-specs-helpers/src/tasks/lint-java/checkstyle-checks.xml \
+    -f plain \
+    -o checkstyle-report.xml 

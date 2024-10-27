@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# https://opensource.com/article/18/5/how-find-ip-address-linux
+
+curl ipinfo.io/ip
+echo 

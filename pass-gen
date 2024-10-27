@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# https://github.com/drduh/YubiKey-Guide?tab=readme-ov-file#debian-and-ubuntu
+
+
+LC_ALL=C tr -dc 'A-Z1-9' < /dev/urandom | \
+    tr -d "1IOS5U" | fold -w 30 | head -n10 | \
+    sed "-es/./ /"{1..26..5} | cut -c2- | tr " " "-"
+
+#Example output:
+#A4ZK-YRRJ-8WPM-82NY-CX9T-AGKT
+#PH9Z-HFDX-QDB9-YMMC-GQZB-Z3EV
+#EC3H-C42G-8E9K-VF7F-ZWT7-BTL6
+#B3CA-QCCE-JMNE-VAZG-ZEYD-J3XP
+#YKP4-M42X-4WWE-WEKR-C3J7-GZYF
+#ZQWC-E7MN-M7CT-4Y4Z-9QFV-44VY
+#KY4F-C83Q-BTYQ-V8EM-WGCR-DPZN
+#GYWQ-WNAC-ERWM-XGAD-6XVD-ZCLD
+#L8JL-EK8H-Z4ZF-MA93-NND8-FPKA
+#WM2J-XF7L-QV6D-AWLY-Y2D8-4TQQ

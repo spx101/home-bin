@@ -1,0 +1,18 @@
+#!/bin/bash
+
+container=$1
+
+[ -z $container ] && { echo "podaj nazwe kontenera" && exit 1; }
+
+c=$(lxc list --format csv |  awk -F"," -v container="$container" '$1==container {print $1}')
+
+[ "$c" != "$container" ] && { echo "brak kontenera: $container - dostepne kontenery:" && lxc list --format csv ; exit 1; }
+
+lxc exec $container -- [ ! -d /root/.ssh ] && mkdir /root/.ssh
+lxc file push ~/.ssh/authorized_keys2 $container/root/.ssh/
+lxc exec $container -- chmod 0600 /root/.ssh/authorized_keys2
+lxc exec $container -- chown -R root:root /root/.ssh/
+lxc exec $container -- ls -all /root/.ssh/authorized_keys2
+
+
+lxc list $container

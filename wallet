@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -f $HOME/zaszyfrowany/coin/$1 ]; then
+    gpg -d $HOME/zaszyfrowany/coin/$1 2>/dev/null | cat
+    echo "waiting for 5sec"
+    sleep 5
+    clear
+fi

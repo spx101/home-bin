@@ -1,0 +1,1 @@
+/home/lg/scripts/artifactory/push-artifactory-amd64.sh

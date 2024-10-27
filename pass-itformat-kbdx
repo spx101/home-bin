@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+echo "" | xclip -selection clipboard
+notify-send -t 2000 -a copy "waiting for yubikey"
+
+FILE="$HOME/zaszyfrowany/keys/keepass-itformat.pass.asc"
+if [ ! -f $FILE ];then
+    echo "brak pliku $FILE"
+    exit 1
+fi
+
+gpg -d $FILE 2>/dev/null | sed -n 1p | tr -d '\n' | xclip -l 2 -selection clipboard 
+notify-send -t 2000 -a copy "pass copied"
+
+#echo "copied to clipboard, you can have only one shot"
+#for i in `seq 1 20`; do
+#    sleep 0.5
+#    echo -n "$i,"
+#done
+#echo "dupa" | xclip -selection clipboard
+
+

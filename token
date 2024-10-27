@@ -1,0 +1,100 @@
+#!/bin/bash
+
+killall -u $USER xclip 1>/dev/null 2>/dev/null
+
+
+ZASZYFROWANY="$HOME/zaszyfrowany"
+
+#set -x
+
+function notify(){
+    echo "$1"
+    notify-send -t 4000 -a copy "$1"
+}
+
+usage() {
+    ls $ZASZYFROWANY/Google-Authenticator/*.asc | sed 's/.*Authenticator\/\(.*\)\.asc/\1/g'
+#    echo "$0 usage:" && grep " .)\ #" $0;
+    echo "example: $0 file.png"
+    exit 0;
+}
+
+[ $# -eq 0 ] && usage
+ff=$1
+if [ -z "$ff" ];then
+    notify "ERR: podaj nazwe pliku"
+    exit 1
+fi
+
+asc_file="$ZASZYFROWANY/Google-Authenticator/$ff.asc"
+out_file="$HOME/temp/$ff"
+
+function cleanup()
+{
+    if [ -f $out_file ];then
+        rm -f $out_file
+    fi
+}
+trap cleanup EXIT
+
+cleanup
+
+if [ ! -f "$asc_file" ]; then
+    notify "brak pliku asc $asc_file"
+    exit 1
+fi
+
+
+notify-send -t 2000 -i $HOME/icons/locked.png "waiting for yubikey"
+gpg --quiet -d -o $out_file $asc_file 2>/dev/null
+
+if [ ! -f $out_file ]; then
+    notify "brak pliku out $out_file"
+    exit 1
+fi
+
+#if [ "$(zbarimg --version)" != "0" ];then
+#    echo "ERROR: zbarimg"
+#    echo "sudo apt install zbar-tools"
+#    exit 1
+#fi
+#
+url=$(zbarimg -q $out_file)
+
+#echo "URL: $url"
+
+SECRET=`echo $url | sed -e 's/.*secret=\([a-zA-Z0-9]*\).*/\1/g'`
+#SECRET=`echo $url | sed -e 's/.*secret=\(.*\)&issuer.*/\1/g'`
+#echo "sec1" $SECRET1
+#echo "sec" $SECRET
+#echo ""
+
+#oathtool --totp $(echo -n "$SECRET" | od -A n -t x1 | sed 's/ *//g')
+#oathtool --totp $(echo -n "$SECRET" | od -A n -t x1 --width=100  | sed 's/ *//g')
+TOKEN=$(oathtool -w 0 --base32 --totp $SECRET)
+
+if [[ "$TOKEN" =~ ^[0-9]+$ ]] ; then
+
+    if [ "$2" == "-v" ]; then
+        echo $TOKEN
+    else
+
+#        -selection
+#    specify which X selection to use, options are:
+#    "primary" to use XA_PRIMARY (default),
+#    "secondary" for XA_SECONDARY
+#    "clipboard" for XA_CLIPBOARD
+# trzeba 1>/dev/null bo icznaj nie lopioje
+        #echo -n "$TOKEN" | nohup xclip -silent -l 2 -selection clipboard 1>/dev/null 2>/dev/null &
+        echo -n "$TOKEN" | xclip -r -silent -l 2 -selection clipboard 1>/dev/null
+        notify-send -t 1000 -i ~/icons/process-completed.png "token copied to clipboard, you can have only one shot"
+
+        xdotool key ctrl+v
+
+    fi
+    exit 0
+fi
+
+notify-send -t 2000 -i ~/icons/dialog-error.png "token error"
+echo "error: something wrong" >&2;
+exit 1

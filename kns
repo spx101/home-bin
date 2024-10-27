@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+echo "--refresh"
+
+if [ -z ${AWS_PROFILE} ]; then
+    echo "missing AWS_PROFILE"
+    exit 1
+fi
+
+DATAFILE="$HOME/.kube/cache/namespaces-list"
+
+if [ ! -f $HOME/.kube/cache/namespaces-list ] ; then
+    AWS_PROFILE="cloud-prod" kubens >> $DATAFILE.tmp
+    AWS_PROFILE="cloud-int" kubens >> $DATAFILE.tmp
+    cat $DATAFILE.tmp | sort | uniq > $DATAFILE
+fi
+
+if [ "$1" == "--refresh" ] || [ "$1" == "-r" ]; then
+    kubens >> $DATAFILE.tmp
+    cat $DATAFILE.tmp | sort | uniq > $DATAFILE
+    echo "fetched to $DATAFILE"
+    exit 0
+fi
+
+kubens $1
+

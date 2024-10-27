@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# sudo apt install tigervnc-viewer
+
+
+I=$1
+N=${I:-1}
+
+echo "screen $N, wait for yubikey" ;
+
+# tunel ssh zamyka sie automatycznie po zamknieciu vncviewer
+
+ssh -fL 590$N:localhost:590$N lg@r930 sleep 10 ; vncviewer PasswordFile=/home/lg/.vnc/r930 localhost:590$N

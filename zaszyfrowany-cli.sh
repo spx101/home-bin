@@ -1,0 +1,1 @@
+/home/lg/workspace/zaszyfrowany-cli/zaszyfrowany-cli.sh

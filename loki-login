@@ -1,0 +1,30 @@
+#!/bin/bash
+
+export OIDC_SOCK=/tmp/oidc-agent-service-$(id -u)/oidc-agent.sock
+export OIDCD_PID_FILE=/tmp/oidc-agent-service-$(id -u)/oidc-agent.pid
+
+killall oidc-agent
+oidc-agent-service start
+
+oidc-gen loki-auth --issuer=https://login.microsoftonline.com/ce24ca5d-86d5-4449-8109-4c93cb1c8c75/v2.0 \
+    --flow=device \
+    --pub \
+    --client-id=305800e6-08c4-443a-8b4b-4cb08c18ca98 \
+    --client-secret= \
+    --redirect-url=http://localhost:2001 \
+    --confirm-default \
+    --scope=profile
+
+oidc-add -a
+
+ps aux| grep oidc
+
+
+if [ ! $HOME/.oidc-agent ]; then
+    mkdir $HOME/.oidc-agent
+fi
+
+echo "oidc-token loki-auth"
+oidc-token loki-auth --id-token > $HOME/.oidc-agent/LOKI_TOKEN
+chmod 0600 $HOME/.oidc-agent/LOKI_TOKEN
+

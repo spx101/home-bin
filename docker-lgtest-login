@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+
+gpg -d ${HOME}/zaszyfrowany/passwords/docker-lgtest-token.asc | docker login -u lgtest --password-stdin
+

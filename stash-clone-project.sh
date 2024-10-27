@@ -1,0 +1,1 @@
+/home/lg/scripts/stash/stash-clone-project.sh

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+FILE=$1
+
+trap "clear" EXIT
+
+if [ ! -f $FILE ]; then
+    echo "brak pliku"
+    exit 1
+fi
+
+clear
+echo "waiting for the yubikey"
+echo "=============================="
+
+gpg -d $FILE 2>/dev/null | cat
+
+
+echo "=============================="
+echo "cleaning will take place in .......... waiting for 5sec"
+for i in `seq 1 10`; do
+    sleep 1
+    echo -n "."
+done
+

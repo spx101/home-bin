@@ -1,0 +1,154 @@
+#!/bin/bash
+
+# [1] login by MFA
+# token aws-architekt90210-MFAUser.png -v | aws-refresh-creds lobo101-MFAUser && aws-profile lobo101-backup
+# [2] switch to role
+# aws-profile lobo101-backup
+# [3] check
+# aws-profile sts
+
+# set -x
+# check s3
+
+aws sts get-caller-identity | jq -r '.Arn' | grep "arn:aws:sts::104024231658:assumed-role/BackupRole"
+if [ "$?" != "0" ]; then
+    echo "token aws-architekt90210-MFAUser.png -v | aws-refresh-creds.py lobo101-MFAUser && aws-profile lobo101-backup"
+    exit 1
+fi
+
+set -e
+set -o pipefail
+
+host=$(hostname -s)
+date=$(date +%Y%m%d_%H%M)
+
+dst='lg@rt:/srv/backup/d5420/'
+tmp="/tmp"
+
+encrypt="gpg --yes -s -a -e -r lukasz.glowacki@itformat.pl"
+
+function clean_up {
+    rm -f $tmp/backup-*
+}
+trap clean_up SIGHUP SIGINT SIGTERM
+clean_up
+
+function send_file() {
+    if [ ! -f "$1" ]; then
+        echo "brak pliku: $1"
+        exit 1
+    fi
+    rsync -av $1 $dst
+    aws s3 cp $1 s3://lobo101-backup
+    rm -f $1
+}
+
+cd ~
+
+[ -d tmp_backup ] || mkdir tmp_backup
+
+sudo true > /dev/null
+BACKUP_FILE="$tmp/backup-etc-${date}.tar.gz.gpg"
+echo "BACKUP_FILE: $BACKUP_FILE"
+sudo tar -czf \
+    - /etc  | gpg -v --yes -s -a -e -r lukasz.glowacki@itformat.pl > $BACKUP_FILE
+send_file $BACKUP_FILE
+
+
+BACKUP_FILE="$tmp/backup-home-conf-${date}.tar.gz.gpg"
+echo "BACKUP_FILE: $BACKUP_FILE"
+tar -czf  - $HOME/.ssh \
+    $(find $HOME -maxdepth 1 \( -name '.*' -o -name '*pass*' -o -name 'bin' \) ! -name '.config' ! -name '.cache' ! -name '.asdf' ! -name '.local' ! -name '.mozilla' ! -name '.vscode' ! -name '.npm' ) \
+    $(find $HOME -maxdepth 1 \( -name '*css' -o -name '*README*' \)) \
+    | $encrypt > $BACKUP_FILE
+send_file $BACKUP_FILE
+
+[ "$?" != "0" ] && { echo "error" ; exit 1 }
+
+BACKUP_FILE="$tmp/backup-documents-${date}.tar.gz.gpg"
+echo "BACKUP_FILE: $BACKUP_FILE"
+tar -czf - $HOME/Documents | $encrypt > $BACKUP_FILE
+send_file ${BACKUP_FILE}
+
+BACKUP_FILE="$tmp/backup-kdbx-${date}.tar.gz.gpg"
+echo "BACKUP_FILE: $BACKUP_FILE"
+tar -czf - $(find $HOME -type f -name '*.kdbx') | $encrypt > $BACKUP_FILE
+send_file $BACKUP_FILE
+rm -f $BACKUP_FILE ; unset $BACKUP_FILE
+
+#sudo tar -cf ./tmp_backup/$host-etc-$date.tar /etc
+#sudo rsync -av ./tmp_backup/$host-etc-$date.tar  $dst
+
+#sudo tar -cf ./tmp_backup/$host-root-$date.tar /root
+#sudo rsync -av ./tmp_backup/$host-root-$date.tar  $dst
+
+rsync -av \
+    --exclude "*/.cache/*" \
+    --exclude "*/.git/*" \
+    --exclude "*/Cache/*" \
+    --exclude "*/cache/*" \
+    --exclude "*/.local/lib/python2.7/site-packages/*" \
+    --exclude "*/.mozilla/firefox/Crash Reports/*" \
+    --exclude "*/CacheStorage/*" \
+    --exclude "*lg/snap/*" \
+    --exclude "*lg/.dbus*" \
+    --exclude "*/venv/*" \
+    --exclude "lg/Downloads/*" \
+    --exclude "lg/Music/*" \
+    --exclude "lg/snap/*" \
+    --exclude "lg/tmp/*" \
+    --exclude "lg/temp/*" \
+    --exclude "lg/ram/*" \
+    --exclude "lg/.atom/packages/*" \
+    --exclude "lg/.vscode" \
+    --exclude "lg/workspace/chroot-ubuntu/*" \
+    --exclude "lg/workspace/hue_data/*" \
+    --exclude "lg/.config/Microsoft/*" \
+    --exclude "lg/Exante/*" \
+    --exclude "lg/*qcow2" \
+    --exclude "lg/zdjecia_by_year" \
+    /home/lg $dst
+
+# encrypt
+#sudo tar -czf - /etc | openssl enc -e -aes256 -pass pass:pass999 -out $host-etc-$date-aes256-tar.gz
+
+# decrypt
+# [ -d test ] || mkdir test
+#openssl enc -d -aes256 -in secured.tar.gz | tar xz -C test
+
+#sudo rsync -av $host-etc-$date.tar  mybackup@rt:/srv/backup/d5480/
+
+#sudo rsync -av --max-size 50M /etc mybackup@rt:/srv/backup/d5480/
+
+if [ ! -f /mnt/blackdrive/.placeholder ] ; then
+        echo "Brak podmontowanego zasobu USB blackdrive"
+        echo "sudo mount /dev/mapper/blackdrive /mnt/blackdrive"
+        echo "haslo w keepass szukaj blackdrive"
+        echo "sudo umount /mnt/blackdrive"
+        echo "sudo cryptsetup luksClose blackdrive"
+        exit 1
+fi
+
+now=$(date +"%Y%m%d%H")
+
+# Backup gpg keys
+gpg --list-secret-keys
+
+#gpg --export-secret-keys --armor lukasz.glowacki@dreamlab.pl > /mnt/blackdrive/lukasz.glowacki@dreamlab.pl-gpgkey-backup.asc
+#gpg --export-secret-keys --armor lukasz.glowacki@itformat.pl > /mnt/blackdrive/lukasz.glowacki@itformat.pl-gpgkey-backup.asc
+
+tar czvf /mnt/blackdrive/d5480-root-$now.tar.gz /root
+
+tar czvf /mnt/blackdrive/d5480-etc-$now.tar.gz /etc
+
+tar czf /mnt/blackdrive/d5480-lg-$now.tar.gz \
+    /home/lg/.ssh \
+    /home/lg/.gnupg \
+    /home/lg/.passwords \
+    /home/lg/workspace/zaszyfrowany \
+    /home/lg/bin \
+    /home/lg/.keepass \
+    /home/lg/.vpn \
+    /home/lg/subversion \
+    /home/lg/Desktop
+

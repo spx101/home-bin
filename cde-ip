@@ -1,0 +1,11 @@
+#!/bin/bash
+
+sudo sh -c "sed -i '/cde/d' /etc/hosts && echo '$1    cde' >> /etc/hosts"
+
+
+#sudo sh -c 'apt-get update && apt-get upgrade -y && apt-get clean'
+
+#sed -i "s/.*cde/$1 cde/g" $HOME/bin/constant.hosts
+#sudo $HOME/bin/reload_hosts.py
+#ssh-keygen -f "$HOME/.ssh/known_hosts" -R "cde"
+
