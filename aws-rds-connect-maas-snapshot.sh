@@ -2,7 +2,7 @@
 
 case $AWS_PROFILE in
     cloud-prod)
-        SECRET="arn:aws:secretsmanager:eu-central-1:435571809706:secret:rds/prod/aurora-monitoring-maassnap-Gbi9fv"
+        SECRET="arn:aws:secretsmanager:eu-central-1:435571809706:secret:rds/prod/aurora-monitoring-maasdbtest-KI8u3z"
         ;;
     cloud-int)
         SECRET="arn:aws:secretsmanager:eu-central-1:413397719283:secret:rds/int/aurora-paas-maas-int-5ZYT5E"

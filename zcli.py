@@ -1,1 +1,1 @@
-/home/lg/scripts/zaszyfrowany-cli/wrapper
+/home/lg/zaszyfrowany-cli/wrapper
