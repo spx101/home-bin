@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8 -*-
+
+from tabulate import tabulate
+import requests
+import os
+import json
+import pickle
+from datetime import datetime
+import argparse
+
+from rich import box, print, print_json
+from rich.console import Console
+from rich.table import Table
+
+# global_box = box.DOUBLE
+# global_box = box.MARKDOWN
+# global_box = box.ASCII_DOUBLE_HEAD
+global_box = box.ASCII2
+
+token = os.getenv("GITHUB_TOKEN")
+org = "Ringier-Axel-Springer-PL"
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Accept": "application/vnd.github.text-match+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
+
+if not token:
+    print("gh-login spx101")
+    exit(1)
+
+
+def read_cache(filename, time_min=60):
+    filename = f"/tmp/{filename}"
+    # Sprawdzenie, czy plik jest starszy niż 5 minut
+    if os.path.exists(filename):
+        file_modified_time = os.path.getmtime(filename)
+        current_time = datetime.now().timestamp()
+        time_difference = current_time - file_modified_time
+        if time_difference > (time_min * 60):  # 5 minut w sekundach
+            return []
+        else:
+            with open(filename, "rb") as file:
+                return pickle.load(file)
+            # print("Plik jest młodszy niż 5 minut.")
+    else:
+        return []
+        # print("Plik nie istnieje.")
+
+
+def save_cache(filename, datain):
+    with open(f"/tmp/{filename}", "wb") as file:
+        pickle.dump(datain, file)
+
+
+# https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-only-issues-or-pull-requests
+
+
+def main(args):
+    q = "is%3Aopen+is%3Apr+org%3ARingier-Axel-Springer-PL+&type=pullrequests&ref=advsearch"
+    q = "is:open+is:pr+org:Ringier-Axel-Springer-PL"
+    url = f"https://api.github.com/search/issues?q={q}"
+    # print(url)
+    # response = requests.get(url, headers=headers)
+    # data = response.json()
+    # del data["items"]
+    # print(data)
+
+    items = [] if args.refresh else read_cache("gh-pr-list")
+    if not items:
+        print("Pobieram dane z GitHuba")
+        page = 1
+        while True:
+            url = f"{url}&page={page}"
+            response = requests.get(url, headers=headers)
+            data = response.json()
+            items.extend(data.get("items", []))
+            # print(data["incomplete_results"])
+            if not data.get("items"):
+                break
+            page += 1
+            print(f"Strona: {page}")
+        save_cache("gh-pr-list", items)
+
+#    table = []
+#    for pr in items:
+#        table.append(
+#            {
+#                "url": pr["html_url"],
+#                "title": pr["title"],
+#                "state": pr["state"],
+#                "created_at": pr["created_at"],
+#                "draft": pr["draft"],
+#            }
+#        )
+    with open("/tmp/gh-pr-list.json", "w", encoding="utf-8") as json_file:
+        json.dump(items, json_file, ensure_ascii=False, indent=4)
+
+    sorted_data = sorted(items, key=lambda x: x["created_at"])
+    print_table(sorted_data)
+    #print(tabulate(sorted_data, headers="keys", tablefmt="csv"))
+
+
+def print_table(data):
+    t = Table(
+        title="Pull requests",
+        box=global_box,
+        show_lines=False,
+        show_header=True,
+        header_style="yellow",
+        title_style="magenta",
+        highlight=False,
+    )
+    t.add_column("URL", justify="left", style="cyan", no_wrap=True)
+    t.add_column("title", style="")
+    t.add_column("state", style="")
+    t.add_column("created_at", style="")
+    t.add_column("draft", style="")
+
+    for item in data:
+        t.add_row(
+            str(item.get("html_url")),
+            str(item.get("title"))[:30],
+            str(item.get("state")),
+            str(item.get("created_at")),
+            str(item.get("draft")),
+        )
+
+    console = Console(emoji=False, highlight=False)
+    console.print(t)
+
+
+def usage():
+    return """
+    pobieranie pull requestów z GitHuba
+    """
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description=("Fetching the list of pull requests from GitHub"),
+        add_help=True,
+        epilog="be happy ;)",
+        usage=usage(),
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--test", dest="test", help="test", action="store_true")
+    parser.add_argument(
+        "-r", "--refresh", dest="refresh", help="Refresh", action="store_true"
+    )
+    args = parser.parse_args()
+    main(args)
