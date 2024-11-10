@@ -65,7 +65,7 @@ url=$(zbarimg -q $out_file)
 
 SECRET=`echo $url | sed -e 's/.*secret=\([a-zA-Z0-9]*\).*/\1/g'`
 #SECRET=`echo $url | sed -e 's/.*secret=\(.*\)&issuer.*/\1/g'`
-#echo "sec1" $SECRET1
+#echo $SECRET
 #echo "sec" $SECRET
 #echo ""
 

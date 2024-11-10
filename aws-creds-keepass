@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# aws creds retreiver form keepass
+
+source ~/.bash_functions
+
+profile=$1
+data_json=$(aws-profile-json $profile) || errcode=$?
+external_id=$(echo $data_json | jq -r '.external_id')
+
+    #if [ "$external_id" == "keepassxc" ]; then
+
+# z tym config nie dziala    
+#>&2 ">>> keepassxc-cli show -k ~/.keepass/rasp.key --no-password -s ~/workspace/keepass/rasp.kdbx aws/$profile"
+        
+        data_json=$(keepassxc-cli show -k ~/.keepass/rasp.key --no-password -s ~/workspace/keepass/rasp.kdbx aws/$profile | yq -o=json)
+        if [ "$?" != "0" ] || [ "$data_json" == "null" ]; then
+            echo "ERROR keepassxc aws/$profile"
+            return 1
+        fi
+        AWS_ACCESS_KEY_ID=$(echo $data_json | jq -r '.UserName')
+        AWS_SECRET_ACCESS_KEY=$(echo $data_json | jq -r '.Password')
+        echo "{"
+        echo "  \"Version\": 1,"
+        echo "  \"AccessKeyId\": \"$AWS_ACCESS_KEY_ID\","
+        echo "  \"SecretAccessKey\": \"$AWS_SECRET_ACCESS_KEY\""
+        echo "}"
+    #fi
