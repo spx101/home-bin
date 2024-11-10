@@ -151,4 +151,3 @@ tar czf /mnt/blackdrive/d5480-lg-$now.tar.gz \
     /home/lg/.vpn \
     /home/lg/subversion \
     /home/lg/Desktop
-
