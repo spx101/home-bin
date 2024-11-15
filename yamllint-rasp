@@ -1,11 +1,13 @@
 #!/bin/bash
 
 
-#gh release download v1 --repo Ringier-Axel-Springer-PL/sdk-action-lint-yaml --archive=zip
-
+if [ "$1" == "-r" ]; then
+    rm -rf $HOME/sdk-action-lint-yaml
+fi
 
 if [ ! -d $HOME/sdk-action-lint-yaml ]; then
-gh repo clone Ringier-Axel-Springer-PL/sdk-action-lint-yaml $HOME/sdk-action-lint-yaml
+    #gh repo clone Ringier-Axel-Springer-PL/sdk-action-lint-yaml $HOME/sdk-action-lint-yaml -- --depth 1 --sparse
+    gh repo clone Ringier-Axel-Springer-PL/sdk-action-lint-yaml $HOME/sdk-action-lint-yaml -- --depth 1
 fi
 
 yamllint -c $HOME/sdk-action-lint-yaml/src/config.yaml .

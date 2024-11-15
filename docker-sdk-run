@@ -2,20 +2,47 @@
 
 name=$1
 
-if [ -z "$name" ];then
-    echo "$0 <NAME>"
-    exit 1
+if [ -z "$1" ]; then
+    ECR_REPOSITORY=awsp-paas-sdk/node
+    IMAGETAG=$(aws ecr list-images --registry-id 463994711582 --repository-name "$ECR_REPOSITORY" --query 'imageIds[*].imageTag')
+
+    OPTIONS=$(echo $IMAGETAG | jq -r '.[]' | sort -V)
+
+    for TAG in $OPTIONS;do
+        IMAGE="463994711582.dkr.ecr.eu-central-1.amazonaws.com/$ECR_REPOSITORY:$TAG"
+        echo $IMAGE
+    done
+
+    ECR_REPOSITORY=awsp-paas-sdk/python
+    IMAGETAG=$(aws ecr list-images --registry-id 463994711582 --repository-name "$ECR_REPOSITORY" --query 'imageIds[*].imageTag')
+
+    OPTIONS=$(echo $IMAGETAG | jq -r '.[]' | sort -V)
+
+    for TAG in $OPTIONS;do
+        IMAGE="463994711582.dkr.ecr.eu-central-1.amazonaws.com/$ECR_REPOSITORY:$TAG"
+        echo $IMAGE
+    done
+
 fi
+
+#if [ -z "$name" ];then
+#    echo "$0 <NAME>"
+#    exit 1
+#fi
 
 #echo "### Running $i ..."
 
-docker rm -f ${name}
+#docker rm -f ${name}
 
-docker run  --rm -it -d --name ${name} --mount type=bind,source=$(pwd),target=/code --hostname ${name} --workdir /code --entrypoint= 463994711582.dkr.ecr.eu-central-1.amazonaws.com/awsp-paas-sdk/node:v14 bash
+name="sdk"
 
+echo '
+sdk_name=sdk
+sdk_image=
+docker run  --rm -it -d --name ${sdk_name} --mount type=bind,source=$(pwd),target=/code --hostname ${sdk_name} --workdir /code --entrypoint= ${sdk_image} bash
+'
 
-echo "docker exec $name npm install"
-
-echo "docker exec $name npm test"
+#echo "docker exec $name npm install"
+#echo "docker exec $name npm test"
 
 

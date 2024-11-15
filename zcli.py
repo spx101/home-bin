@@ -1,1 +1,0 @@
-/home/lg/zaszyfrowany-cli/wrapper
