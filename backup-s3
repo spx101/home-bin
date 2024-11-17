@@ -7,12 +7,18 @@
 # [3] check
 # aws-profile sts
 
-# set -x
-# check s3
+
+function clean_up {
+    rm -f $tmp/backup-*
+}
+
+trap clean_up SIGHUP SIGINT SIGTERM
+clean_up
+
 
 aws sts get-caller-identity | jq -r '.Arn' | grep "arn:aws:sts::104024231658:assumed-role/BackupRole"
 if [ "$?" != "0" ]; then
-    echo "token aws-architekt90210-MFAUser.png -v | aws-refresh-creds.py lobo101-MFAUser && aws-profile lobo101-backup"
+    echo "aws-refresh-creds-MFAUser && aws-profile lobo101-backup"
     exit 1
 fi
 
@@ -25,15 +31,10 @@ date=$(date +%Y%m%d_%H%M)
 dst='lg@rt:/srv/backup/d5420/'
 tmp="/tmp"
 
-encrypt="gpg --yes -s -a -e -r lukasz.glowacki@itformat.pl"
-
-function clean_up {
-    rm -f $tmp/backup-*
-}
-trap clean_up SIGHUP SIGINT SIGTERM
-clean_up
+encrypt="gpg --default-key lukasz.glowacki@itformat.pl --yes -s -a -e -r lukasz.glowacki@itformat.pl"
 
 function send_file() {
+    echo ">>> send_file $1"
     if [ ! -f "$1" ]; then
         echo "brak pliku: $1"
         exit 1
@@ -47,23 +48,14 @@ cd ~
 
 [ -d tmp_backup ] || mkdir tmp_backup
 
+echo ">>> sudo ..."
 sudo true > /dev/null
+
 BACKUP_FILE="$tmp/backup-etc-${date}.tar.gz.gpg"
-echo "BACKUP_FILE: $BACKUP_FILE"
-sudo tar -czf \
-    - /etc  | gpg -v --yes -s -a -e -r lukasz.glowacki@itformat.pl > $BACKUP_FILE
+echo ">>> backup /etc   > $BACKUP_FILE"
+sudo tar -czf - /etc | $encrypt > $BACKUP_FILE
+
 send_file $BACKUP_FILE
-
-
-BACKUP_FILE="$tmp/backup-home-conf-${date}.tar.gz.gpg"
-echo "BACKUP_FILE: $BACKUP_FILE"
-tar -czf  - $HOME/.ssh \
-    $(find $HOME -maxdepth 1 \( -name '.*' -o -name '*pass*' -o -name 'bin' \) ! -name '.config' ! -name '.cache' ! -name '.asdf' ! -name '.local' ! -name '.mozilla' ! -name '.vscode' ! -name '.npm' ) \
-    $(find $HOME -maxdepth 1 \( -name '*css' -o -name '*README*' \)) \
-    | $encrypt > $BACKUP_FILE
-send_file $BACKUP_FILE
-
-[ "$?" != "0" ] && { echo "error" ; exit 1 }
 
 BACKUP_FILE="$tmp/backup-documents-${date}.tar.gz.gpg"
 echo "BACKUP_FILE: $BACKUP_FILE"
@@ -78,9 +70,18 @@ rm -f $BACKUP_FILE ; unset $BACKUP_FILE
 
 #sudo tar -cf ./tmp_backup/$host-etc-$date.tar /etc
 #sudo rsync -av ./tmp_backup/$host-etc-$date.tar  $dst
-
 #sudo tar -cf ./tmp_backup/$host-root-$date.tar /root
 #sudo rsync -av ./tmp_backup/$host-root-$date.tar  $dst
+
+BACKUP_FILE="$tmp/backup-home-conf-${date}.tar.gz.gpg"
+echo "BACKUP_FILE: $BACKUP_FILE"
+echo ">>> backup home conf  > $BACKUP_FILE"
+tar -czf  - $HOME/.ssh \
+    $(find $HOME -maxdepth 1 \( -name '.*' -o -name '*pass*' -o -name 'bin' \) ! -name '.config' ! -name '.cache' ! -name '.asdf' ! -name '.local' ! -name '.mozilla' ! -name '.vscode' ! -name '.npm' ) \
+    $(find $HOME -maxdepth 1 \( -name '*css' -o -name '*README*' \)) \
+    | $encrypt > $BACKUP_FILE
+send_file $BACKUP_FILE
+[ "$?" != "0" ] && { echo "error" ; exit 1 }
 
 rsync -av \
     --exclude "*/.cache/*" \
@@ -111,13 +112,10 @@ rsync -av \
 
 # encrypt
 #sudo tar -czf - /etc | openssl enc -e -aes256 -pass pass:pass999 -out $host-etc-$date-aes256-tar.gz
-
 # decrypt
 # [ -d test ] || mkdir test
 #openssl enc -d -aes256 -in secured.tar.gz | tar xz -C test
-
 #sudo rsync -av $host-etc-$date.tar  mybackup@rt:/srv/backup/d5480/
-
 #sudo rsync -av --max-size 50M /etc mybackup@rt:/srv/backup/d5480/
 
 if [ ! -f /mnt/blackdrive/.placeholder ] ; then

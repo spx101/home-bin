@@ -22,7 +22,9 @@ def get_aws_profile(profile: str):
 
     profile_key = f'profile {profile}'
     if profile_key not in config:
-        raise ValueError(f"Profile {profile} not found in {home}/.aws/config")
+        output = {"error":  f"Profile {profile} not found in {home}/.aws/config"}
+        print(output)
+        exit(1)
 
     profile_dict = {key: value for key, value in config[profile_key].items()}
     return profile_dict
