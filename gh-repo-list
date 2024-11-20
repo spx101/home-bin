@@ -79,7 +79,7 @@ def main(args):
         while True:
             url = f"{base_url}?page={page}&per_page=100"
             print(url, file=sys.stderr)
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=10)
             print(f"Strona: {page} {response} items: {len(items)}", file=sys.stderr)
             data = response.json()
             items.extend(data)
@@ -91,11 +91,11 @@ def main(args):
     with open("/tmp/gh-repo-list.json", "w", encoding="utf-8") as json_file:
         json.dump(items, json_file, ensure_ascii=False, indent=4)
 
-    sorted_data = sorted(items, key=lambda x: x["created_at"])
+    filtered_data = sorted(items, key=lambda x: x["created_at"])
 
     if args.filter:
         filtered_data = [
-            item for item in sorted_data if item["name"].startswith(args.filter)
+            item for item in filtered_data if item["name"].startswith(args.filter)
         ]
 
     if args.namespace:

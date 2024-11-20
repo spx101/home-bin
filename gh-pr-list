@@ -86,7 +86,7 @@ def main(args):
         page = 1
         while True:
             url = f"{base_url}&page={page}"
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=10)
             data = response.json()
             items.extend(data.get("items", []))
             # print(data["incomplete_results"])
@@ -110,16 +110,14 @@ def main(args):
     with open("/tmp/gh-pr-list.json", "w", encoding="utf-8") as json_file:
         json.dump(items, json_file, ensure_ascii=False, indent=4)
 
-    sorted_data = sorted(items, key=lambda x: x["created_at"])
+    filtered_data = sorted(items, key=lambda x: x["created_at"])
 
     if args.namespace:
         namespaces = args.namespace.split(',')
         filtered_data = [
-            item for item in sorted_data
+            item for item in filtered_data
             if any(f"Ringier-Axel-Springer-PL/{ns}" in item["html_url"] for ns in namespaces)
         ]
-    else:
-        filtered_data = sorted_data
 
     print_table(filtered_data)
     #print(tabulate(sorted_data, headers="keys", tablefmt="csv"))
