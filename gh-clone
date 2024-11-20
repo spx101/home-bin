@@ -1,0 +1,42 @@
+#!/bin/bash
+
+dowork() {
+    echo "Processing repo :: gh repo clone $1"
+    REPONAME=$(echo $1 | cut -d/ -f2)
+    if [ -d $REPONAME ]; then
+        (cd $REPONAME ; git pull)
+    else
+        gh repo clone $1
+    fi
+    sleep 0.01
+}
+export -f dowork
+
+CURRENT_DIR=$(basename "$PWD")
+
+if [[ "$CURRENT_DIR" != gh--* ]]; then
+    echo "Error: Directory name does not contain 'gh--'"
+    exit 1
+fi
+
+REPO_NAME=$(echo $CURRENT_DIR | sed 's/^gh--//')
+echo "Current repository name: $REPO_NAME"
+REPOS_LIST=$(gh-repo-list -ojson -f $REPO_NAME | jq -r '.[].full_name')
+
+parallel --jobs 6 dowork ::: "${REPOS_LIST[@]}"
+
+
+# echo "Processing repos with awsp- prefix"
+# REPOS_LIST=$(echo $REPOS | jq -r 'select(.nameWithOwner | startswith("Ringier-Axel-Springer-PL/awsp-")) | .nameWithOwner')
+# parallel --jobs 4 dowork ::: "${REPOS_LIST[@]}"
+
+# #~/.config/Code/User/globalStorage/alefragnani.project-manager/projects.json
+
+# #[
+# #    {
+# #		"name": "sdk-lgtest-action1",
+# #		"rootPath": "/home/lg/gh/sdk-lgtest-action1",
+# #		"paths": [],
+# #		"tags": ["lgtest"],
+# #		"enabled": true
+# #	},
