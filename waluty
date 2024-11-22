@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8 -*-
+
+import json
+import argparse
+import requests
+from tabulate import tabulate
+
+
+def main(args=None):
+    symbols = args.symbols.upper().split(",")
+    url = "https://api.nbp.pl/api/exchangerates/tables/A"
+    response = requests.get(url, allow_redirects=True, timeout=10)
+    data = json.loads(response.text)
+    data = data[0]
+    table = data.get("table")
+    no = data.get("no")
+    effective_date = data.get("effectiveDate")
+
+    print(f"Table          {table}")
+    print(f"No             {no}")
+    print(f"effectiveDate  {effective_date}")
+    rates = data["rates"]
+    rates = [i for i in rates if i["code"] in symbols]
+    for rate in rates:
+        rate["value[PLN]"] = float(args.qty) * float(rate["mid"])
+    print(tabulate(rates, headers="keys", tablefmt="csv"))
+
+
+#    for i in rates:
+#        if i["code"] in symbols:
+#            print(i)
+
+def arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--symbols",
+        "-s",
+        dest="symbols",
+        help="Comma separated symbols",
+        default="usd,eur",
+        required=False,
+        type=str,
+    )
+    parser.add_argument(dest="qty", help="qty", default=1.0, type=float, nargs="?")
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = arguments()
+    main(args)

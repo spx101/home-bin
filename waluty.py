@@ -1,1 +1,0 @@
-/home/lg/scripts/my/wrapper
