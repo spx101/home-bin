@@ -20,7 +20,7 @@ if [[ "$CURRENT_DIR" != gh--* ]]; then
 fi
 
 REPO_NAME=$(echo $CURRENT_DIR | sed 's/^gh--//')
-echo "Current repository name: $REPO_NAME"
+echo "Current repository prefix: $REPO_NAME"
 REPOS_LIST=$(gh-repo-list -ojson -f $REPO_NAME | jq -r '.[].full_name')
 
 parallel --jobs 6 dowork ::: "${REPOS_LIST[@]}"

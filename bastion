@@ -3,6 +3,8 @@
 set -o errexit
 set -o nounset
 
+ssh-add -D
+
 copy="no"
 LOC=$(echo $0 | cut -d'-' -f2)
 HOST_PROD="bastion.paas-prod.aws.dreamlab"
@@ -58,8 +60,13 @@ esac
 #    rsync -avq -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ~/.bashrc-bastion lglowacki2@$HOST:/home/lglowacki2/.bashrc
 #fi
 
+# ssh-keygen -f '/home/lg/.ssh/known_hosts' -R "bastion.paas-$LOC.aws.dreamlab"
 
-ssh -A lglowacki2@$HOST
+ssh-add ~/.ssh/k8s-apps-v1-${LOC}.pem
+keepassxc-cli clip -k ~/.keepass/rasp.key --no-password ~/workspace/keepass/rasp.kdbx rasp/domenowe 1>/dev/null &
+sleep 1
+echo "password:ok"
+ssh -A -i ~/.ssh/id_rsa lglowacki2@bastion.paas-${LOC}.aws.dreamlab
 
 #alias bastion-prod="ssh -A lglowacki2@bastion.paas-prod.aws.dreamlab"
 #alias bastion-int="ssh -A lglowacki2@bastion.paas-int.aws.dreamlab"
