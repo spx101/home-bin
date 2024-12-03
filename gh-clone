@@ -19,9 +19,19 @@ if [[ "$CURRENT_DIR" != gh--* ]]; then
     exit 1
 fi
 
-REPO_NAME=$(echo $CURRENT_DIR | sed 's/^gh--//')
-echo "Current repository prefix: $REPO_NAME"
-REPOS_LIST=$(gh-repo-list -ojson -f $REPO_NAME | jq -r '.[].full_name')
+STRING1=$(echo $CURRENT_DIR | sed 's/--/#/g')
+NAMESPACE=$(echo $STRING1 | cut -d'#' -f2)
+PREFIX=$(echo $STRING1 | cut -d'#' -f3)
+echo "Current repository namespace: $NAMESPACE"
+echo "Current repository prefix: $PREFIX"
+
+if [ ! -z $PREFIX ]; then
+    GH_CLONE_ARGS="-n ${NAMESPACE} -f ${PREFIX}"
+else
+    GH_CLONE_ARGS="-n ${NAMESPACE}"
+fi
+
+REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS | jq -r '.[].full_name')
 
 parallel --jobs 6 dowork ::: "${REPOS_LIST[@]}"
 
