@@ -10,7 +10,7 @@ fi
 kubectl cordon $node
 kubectl drain --ignore-daemonsets --delete-emptydir-data $node
 
-sleep 2
+sleep 10
 
 kubectl delete node $node
 

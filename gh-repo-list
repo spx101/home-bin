@@ -21,6 +21,7 @@ import yaml
 global_box = box.ASCII2
 
 ORG = "Ringier-Axel-Springer-PL"
+PER_PAGE = 100
 
 def read_github_token():
     config_path = os.path.expanduser("~/.config/gh/hosts.yaml")
@@ -69,27 +70,58 @@ def main(args):
         print("gh-login spx101")
         exit(1)
 
-    base_url = f"https://api.github.com/orgs/{ORG}/repos"
-    print("read cache", file=sys.stderr)
-    items = [] if args.refresh else read_cache("gh-repo-list")
-    print(f"Number of items in cache: {len(items)}", file=sys.stderr)
-    if not items:
-        print("Pobieram dane z GitHuba", file=sys.stderr)
-        page = 1
-        while True:
-            url = f"{base_url}?page={page}&per_page=100"
-            print(url, file=sys.stderr)
-            response = requests.get(url, headers=headers, timeout=10)
-            print(f"Strona: {page} {response} items: {len(items)}", file=sys.stderr)
-            data = response.json()
-            items.extend(data)
-            if not data:
-                break
-            page += 1
-        save_cache("gh-repo-list", items)
+    namespaces = []
+    if args.namespace:
+        namespaces = args.namespace.split(',')
 
-    with open("/tmp/gh-repo-list.json", "w", encoding="utf-8") as json_file:
-        json.dump(items, json_file, ensure_ascii=False, indent=4)
+        items = []
+        for namespace in namespaces:
+            base_url = f"https://api.github.com/search/repositories?q=props.namespace%3A{namespace}+org%3A{ORG}"
+            print(f"Pobieram dane z GitHuba, namespace={namespace}", file=sys.stderr)
+            page = 1
+            while True:
+                url = f"{base_url}&page={page}&per_page={PER_PAGE}"
+                print(url, file=sys.stderr)
+                response = requests.get(url, headers=headers, timeout=10)
+                print(f"Strona: {page} {response} items: {len(items)}", file=sys.stderr)
+
+                data = response.json()
+                if not data.get("items"):
+                    break
+
+                items.extend(data.get("items"))
+                page += 1
+
+        id_list = [item["id"] for item in items]
+        cached_items = read_cache("gh-repo-list")
+        cached_items = [item for item in cached_items if item["id"] not in id_list]
+        cached_items.extend(items)
+        with open("/tmp/gh-repo-list.json", "w", encoding="utf-8") as json_file:
+            json.dump(cached_items, json_file, ensure_ascii=False, indent=4)
+
+    else:
+
+        base_url = f"https://api.github.com/orgs/{ORG}/repos"
+        print("read cache", file=sys.stderr)
+        items = [] if args.refresh else read_cache("gh-repo-list")
+        print(f"Number of items in cache: {len(items)}", file=sys.stderr)
+        if not items:
+            print("Pobieram dane z GitHuba", file=sys.stderr)
+            page = 1
+            while True:
+                url = f"{base_url}?page={page}&per_page=100"
+                print(url, file=sys.stderr)
+                response = requests.get(url, headers=headers, timeout=10)
+                print(f"Strona: {page} {response} items: {len(items)}", file=sys.stderr)
+                data = response.json()
+                items.extend(data)
+                if not data:
+                    break
+                page += 1
+            save_cache("gh-repo-list", items)
+
+        with open("/tmp/gh-repo-list.json", "w", encoding="utf-8") as json_file:
+            json.dump(items, json_file, ensure_ascii=False, indent=4)
 
     filtered_data = sorted(items, key=lambda x: x["created_at"])
 
@@ -98,12 +130,12 @@ def main(args):
             item for item in filtered_data if item["name"].startswith(args.filter)
         ]
 
-    if args.namespace:
-        namespaces = args.namespace.split(',')
-        filtered_data = [
-            item for item in filtered_data
-            if any(f"Ringier-Axel-Springer-PL/{ns}" in item["html_url"] for ns in namespaces)
-        ]
+    # if args.namespace:
+    #     namespaces = args.namespace.split(',')
+    #     filtered_data = [
+    #         item for item in filtered_data
+    #         if any(f"Ringier-Axel-Springer-PL/{ns}" in item["html_url"] for ns in namespaces)
+    #     ]
 
     if args.output == "table":
         print_table(filtered_data)
