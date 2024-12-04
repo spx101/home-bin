@@ -22,6 +22,7 @@ global_box = box.ASCII2
 
 ORG = "Ringier-Axel-Springer-PL"
 PER_PAGE = 100
+CACHE_FILE = os.path.expanduser("~/.cache/gh-repo-list.json")
 
 def read_github_token():
     config_path = os.path.expanduser("~/.config/gh/hosts.yaml")
@@ -33,7 +34,6 @@ def read_github_token():
     return user, None
 
 def read_cache(filename, time_min=60):
-    filename = f"/tmp/{filename}"
     # Sprawdzenie, czy plik jest starszy niż 5 minut
     if os.path.exists(filename):
         file_modified_time = os.path.getmtime(filename)
@@ -51,7 +51,7 @@ def read_cache(filename, time_min=60):
 
 
 def save_cache(filename, datain):
-    with open(f"/tmp/{filename}", "wb") as file:
+    with open(filename, "wb") as file:
         pickle.dump(datain, file)
 
 
@@ -93,17 +93,17 @@ def main(args):
                 page += 1
 
         id_list = [item["id"] for item in items]
-        cached_items = read_cache("gh-repo-list")
+        cached_items = read_cache(CACHE_FILE)
         cached_items = [item for item in cached_items if item["id"] not in id_list]
         cached_items.extend(items)
-        with open("/tmp/gh-repo-list.json", "w", encoding="utf-8") as json_file:
+        with open(CACHE_FILE, "w", encoding="utf-8") as json_file:
             json.dump(cached_items, json_file, ensure_ascii=False, indent=4)
 
     else:
 
         base_url = f"https://api.github.com/orgs/{ORG}/repos"
         print("read cache", file=sys.stderr)
-        items = [] if args.refresh else read_cache("gh-repo-list")
+        items = [] if args.refresh else read_cache(CACHE_FILE)
         print(f"Number of items in cache: {len(items)}", file=sys.stderr)
         if not items:
             print("Pobieram dane z GitHuba", file=sys.stderr)
@@ -118,9 +118,9 @@ def main(args):
                 if not data:
                     break
                 page += 1
-            save_cache("gh-repo-list", items)
+            save_cache(CACHE_FILE, items)
 
-        with open("/tmp/gh-repo-list.json", "w", encoding="utf-8") as json_file:
+        with open(CACHE_FILE, "w", encoding="utf-8") as json_file:
             json.dump(items, json_file, ensure_ascii=False, indent=4)
 
     filtered_data = sorted(items, key=lambda x: x["created_at"])
