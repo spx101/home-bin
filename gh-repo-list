@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
+# pylint: disable=missing-function-docstring
+# flake8: noqa
 
 import sys
 from tabulate import tabulate
@@ -42,18 +44,24 @@ def read_cache(filename, time_min=60):
         if time_difference > (time_min * 60):  # 5 minut w sekundach
             return []
         else:
-            with open(filename, "rb") as file:
-                return pickle.load(file)
-            # print("Plik jest młodszy niż 5 minut.")
+            if filename.endswith(".json"):
+                with open(filename, "r", encoding="utf-8") as json_file:
+                    return json.load(json_file)
+            else:
+                with open(filename, "rb") as file:
+                    return pickle.load(file)
     else:
         return []
         # print("Plik nie istnieje.")
 
 
 def save_cache(filename, datain):
-    with open(filename, "wb") as file:
-        pickle.dump(datain, file)
-
+    if filename.endswith(".json"):
+        with open(filename, "w", encoding="utf-8") as json_file:
+            json.dump(datain, json_file, ensure_ascii=False, indent=4)
+    else:
+        with open(filename, "wb") as file:
+            pickle.dump(datain, file)
 
 def main(args):
 
