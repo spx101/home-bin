@@ -22,7 +22,7 @@ fi
 STRING1=$(echo $CURRENT_DIR | sed 's/--/#/g')
 NAMESPACE=$(echo $STRING1 | cut -d'#' -f2)
 PREFIX=$(echo $STRING1 | cut -d'#' -f3)
-echo "Current repository namespace: $NAMESPACE"
+echo "run: Current repository namespace: $NAMESPACE"
 echo "Current repository prefix: $PREFIX"
 
 if [ ! -z $PREFIX ]; then
@@ -30,6 +30,8 @@ if [ ! -z $PREFIX ]; then
 else
     GH_CLONE_ARGS="-n ${NAMESPACE}"
 fi
+
+echo "run: gh-repo-list -ojson $GH_CLONE_ARGS"
 
 REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS | jq -r '.[].full_name')
 
