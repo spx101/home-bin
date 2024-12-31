@@ -13,16 +13,24 @@ dowork() {
 export -f dowork
 
 CURRENT_DIR=$(basename "$PWD")
+PARENT_DIR=$(basename "$(dirname "$PWD")")
+echo "Parent directory name: $PARENT_DIR"
 
-if [[ "$CURRENT_DIR" != gh--* ]]; then
-    echo "Error: Directory name does not contain 'gh--'"
+
+if [[ "$PARENT_DIR" != "gh" ]]; then
+    echo "Error: Directory name does not 'gh'"
     exit 1
 fi
 
-STRING1=$(echo $CURRENT_DIR | sed 's/--/#/g')
-NAMESPACE=$(echo $STRING1 | cut -d'#' -f2)
-PREFIX=$(echo $STRING1 | cut -d'#' -f3)
-echo "run: Current repository namespace: $NAMESPACE"
+NAMESPACE="$CURRENT_DIR"
+
+if [ -f ".github.yaml" ]; then
+    NAMESPACE=$(cat .github.yaml | grep -i namespace | cut -d':' -f2)
+    PREFIX=$(cat .github.yaml | grep -i prefix | cut -d':' -f2)
+    EXCLUDE=$(cat .github.yaml | grep -i exclude | cut -d':' -f2 | tr -d ' ')
+fi
+
+echo "Current repository namespace: $NAMESPACE"
 echo "Current repository prefix: $PREFIX"
 
 if [ ! -z $PREFIX ]; then
@@ -31,12 +39,18 @@ else
     GH_CLONE_ARGS="-n ${NAMESPACE}"
 fi
 
-echo "run: gh-repo-list -ojson $GH_CLONE_ARGS"
+echo "RUN: gh-repo-list -ojson $GH_CLONE_ARGS"
 
-REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS | jq -r '.[].full_name')
+
+if [ -z "$GITHUB_TOKEN_TOKEN" ]; then
+    echo "Error: GITHUB_TOKEN_TOKEN is not set"
+    echo "try: gh-login spx101"
+    exit 1
+fi
+
+REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS -e "$EXCLUDE" | jq -r '.[].full_name')
 
 parallel --jobs 6 dowork ::: "${REPOS_LIST[@]}"
-
 
 # echo "Processing repos with awsp- prefix"
 # REPOS_LIST=$(echo $REPOS | jq -r 'select(.nameWithOwner | startswith("Ringier-Axel-Springer-PL/awsp-")) | .nameWithOwner')

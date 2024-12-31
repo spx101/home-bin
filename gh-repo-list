@@ -65,6 +65,8 @@ def save_cache(filename, datain):
 
 def main(args):
 
+    exclude = args.exclude.split(',') if args.exclude else []
+
     #token = read_github_token()
     token = os.getenv("GITHUB_TOKEN_TOKEN")
 
@@ -138,6 +140,11 @@ def main(args):
             item for item in filtered_data if item["name"].startswith(args.filter)
         ]
 
+    if exclude:
+        filtered_data = [
+            item for item in filtered_data if not any(item["name"].startswith(ex) for ex in exclude)
+        ]
+
     # if args.namespace:
     #     namespaces = args.namespace.split(',')
     #     filtered_data = [
@@ -209,6 +216,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-f", "--filter", dest="filter", help="filter, startswith", type=str
+    )
+    parser.add_argument(
+        "-e", "--exclude", dest="exclude", help="exclude, startswith", type=str
     )
     args = parser.parse_args()
     main(args)

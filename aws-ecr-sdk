@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Sprawdź, czy AWS CLI jest zainstalowane
+if ! command -v aws &>/dev/null; then
+    echo "AWS CLI nie jest zainstalowane. Proszę zainstalować AWS CLI przed uruchomieniem skryptu."
+    exit 1
+fi
+
+# Pobierz listę wszystkich repozytoriów w ECR
+repositories=(awsp-sdk-python awsp-sdk-node)
+
+# Sprawdź, czy znaleziono jakieś repozytoria
+if [ -z "$repositories" ]; then
+    echo "Brak repozytoriów w ECR."
+    exit 0
+fi
+
+set -x
+
+# Iteracja po wszystkich repozytoriach
+for repo in $repositories; do
+    echo "Repozytorium: $repo"
+    
+    # Pobierz listę obrazów (digesty i tagi) dla bieżącego repozytorium
+    images=$(aws ecr list-images --registry-id 463994711582 --repository-name "$repo" --query 'imageIds[*]' --output json)
+
+    # Sprawdź, czy są jakieś obrazy w repozytorium
+    if [ "$images" == "[]" ]; then
+        echo "  Brak obrazów w repozytorium $repo."
+        continue
+    fi
+
+    # Wypisz obrazy z tagami
+    aws ecr list-images --registry-id 463994711582 --repository-name "$repo" --query 'imageIds[*].[imageDigest, imageTag]' --output json
+    echo
+done
+
