@@ -14,32 +14,30 @@ export -f dowork
 
 CURRENT_DIR=$(basename "$PWD")
 PARENT_DIR=$(basename "$(dirname "$PWD")")
-echo "Parent directory name: $PARENT_DIR"
-
-
-if [[ "$PARENT_DIR" != "gh" ]]; then
-    echo "Error: Directory name does not 'gh'"
-    exit 1
-fi
-
 NAMESPACE="$CURRENT_DIR"
 
 if [ -f ".github.yaml" ]; then
+    OWNER=$(cat .github.yaml | grep -i owner | cut -d':' -f2)
     NAMESPACE=$(cat .github.yaml | grep -i namespace | cut -d':' -f2)
     PREFIX=$(cat .github.yaml | grep -i prefix | cut -d':' -f2)
     EXCLUDE=$(cat .github.yaml | grep -i exclude | cut -d':' -f2 | tr -d ' ')
 fi
 
+echo "Parent directory name: $PARENT_DIR"
 echo "Current repository namespace: $NAMESPACE"
 echo "Current repository prefix: $PREFIX"
+echo "Repository owner: $OWNER"
+
+if [ "$PARENT_DIR" != "gh" ] && [ -z "$OWNER" ]; then
+    echo "Error: Directory name does not 'gh'"
+    exit 1
+fi
 
 if [ ! -z $PREFIX ]; then
     GH_CLONE_ARGS="-n ${NAMESPACE} -f ${PREFIX}"
 else
     GH_CLONE_ARGS="-n ${NAMESPACE}"
 fi
-
-echo "RUN: gh-repo-list -ojson $GH_CLONE_ARGS"
 
 
 if [ -z "$GITHUB_TOKEN_TOKEN" ]; then
@@ -48,7 +46,12 @@ if [ -z "$GITHUB_TOKEN_TOKEN" ]; then
     exit 1
 fi
 
-REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS -e "$EXCLUDE" | jq -r '.[].full_name')
+if [ -z "$OWNER" ]; then
+    REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS -e "$EXCLUDE" | jq -r '.[].full_name')
+else
+    echo "RUN: gh-repo-list -ojson $GH_CLONE_ARGS"
+    REPOS_LIST=$(gh repo list --json name,owner --jq '.[] | "\(.owner.login)/\(.name)"')
+fi
 
 parallel --jobs 6 dowork ::: "${REPOS_LIST[@]}"
 
