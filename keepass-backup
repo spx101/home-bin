@@ -1,0 +1,88 @@
+#!/bin/bash
+
+AWS_PROFILE=lobo101-keepass
+AWS_DEFAULT_REGION=eu-central-1
+
+function clean_up {
+    echo "clean_up"
+}
+trap clean_up SIGHUP SIGINT SIGTERM
+
+DATE=$(date +%Y-%m-%d-%H-%M)
+DEST_DIR="/home/lg/keepass/backup"
+LATEST_DIR="/home/lg/keepass/latest"
+
+# Tworzenie katalogu docelowego, jeśli nie istnieje
+ssh rt "mkdir -p $DEST_DIR ; mkdir -p $LATEST_DIR"
+
+# Rsync z opcją backup i wersjonowaniem nazw
+rsync -av --backup --suffix=_$DATE ./ rt:$LATEST_DIR --backup-dir=$DEST_DIR
+
+aws s3 cp ./ s3://lobo101-keepass/$DATE --recursive --exclude "*" --include "*.kdbx"
+
+clean_up
+
+
+
+
+
+
+
+
+
+
+
+# for lockfile in *.lock; do
+#     if [ -f "$lockfile" ]; then
+#         echo "Zamknij plik $lockfile"
+#         exit 1
+#     fi
+# done
+
+# DATE=$(date +%Y-%m-%d)
+
+# rsync -av --backup --backup-dir=/home/lg/keepass/$DATE ./ rt:/home/lg/keepass/latest/
+
+# if [ -f .itformat-android.kdbx.lock ];then
+#     echo "Zamknij plik itformat-android.kdbx"
+#     exit 1
+# fi
+
+# if [[ "$1" =~ push|pull ]];then
+#     echo "$1"
+# else
+#     echo "push or pull"
+#     exit 1
+# fi
+
+# if [ "$1" == "push" ];then
+
+# sftp -v keepass@192.168.88.2 <<EOF
+# cd /pliki
+# mkdir $DATE
+# put itformat-android.kdbx
+# quit
+# EOF
+
+# # Best practice is to assign the sftp return code to a variable for further use, because
+# # ${?} is fleeting and only shows the condition code of the immediately preceding command
+
+# SFTP_RETURN_CODE=${?}
+
+# # If the return code is non-zero then the upload was not successful
+
+# if [[ 0 != ${SFTP_RETURN_CODE} ]]
+#    then
+#    echo "upload itformat-android.kdbx failed"
+#    exit ${SFTP_RETURN_CODE}
+# else
+#    echo "upload for itformat-android.kdbx was successful"
+# fi
+
+# exit 0
+
+# fi
+
+# if [ "$1" == "pull" ];then
+#     sftp keepass@192.168.88.2:pliki/itformat-android.kdbx itformat-android.kdbx
+# fi

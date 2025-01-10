@@ -1,0 +1,20 @@
+#!/bin/bash
+
+AWS_PROFILE=lobo101-keepass
+AWS_DEFAULT_REGION=eu-central-1
+
+function clean_up {
+    echo "clean_up"
+}
+trap clean_up SIGHUP SIGINT SIGTERM
+
+DATE=$(date +%Y-%m-%d-%H-%M)
+DEST_DIR="/home/lg/keepass/backup"
+LATEST_DIR="/home/lg/keepass/latest"
+
+mkdir -p /home/lg/keepass/
+rsync -av rt:/home/lg/keepass/latest/* /home/lg/keepass/
+
+clean_up
+
+
