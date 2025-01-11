@@ -32,7 +32,7 @@ log() {
 
 if [[ "$ACTION" == "add" ]]; then
     log "run when $ACTION"
-    rm -f /tmp/yubikey-lock-sessions 2>/dev/null
+#    rm -f /tmp/yubikey-lock-sessions 2>/dev/null
     systemctl restart pcscd
     #sleep 0.2
     #gpg-card -- verify

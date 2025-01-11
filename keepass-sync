@@ -1,0 +1,23 @@
+#!/bin/bash
+
+AWS_PROFILE=lobo101-keepass
+AWS_DEFAULT_REGION=eu-central-1
+
+DATE=$(date +%Y-%m-%d-%H-%M)
+LOCAL_KEEPASS_DIR="$HOME/keepass"
+
+echo "DATE: $DATE"
+echo "LOCAL_KEEPASS_DIR: $LOCAL_KEEPASS_DIR"
+
+
+# first backup
+echo ">>> Backup do s3://lobo101-keepass/$DATE"
+aws s3 cp $LOCAL_KEEPASS_DIR s3://lobo101-keepass/$DATE --recursive --exclude "*" --include "*.kdbx"
+
+# and sync
+echo ">>> Sync latest version"
+aws s3 sync s3://lobo101-keepass/latest $LOCAL_KEEPASS_DIR
+
+ls -all $LOCAL_KEEPASS_DIR
+
+

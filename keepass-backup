@@ -9,27 +9,28 @@ function clean_up {
 trap clean_up SIGHUP SIGINT SIGTERM
 
 DATE=$(date +%Y-%m-%d-%H-%M)
-DEST_DIR="/home/lg/keepass/backup"
-LATEST_DIR="/home/lg/keepass/latest"
+REMOTE_BACKUP_DIR="$HOME/keepass/backup"
+REMOTE_LATEST_DIR="$HOME/keepass/latest"
+LOCAL_KEEPASS_DIR="$HOME/keepass"
+
+echo "DATE: $DATE"
+echo "LOCAL_KEEPASS_DIR: $LOCAL_KEEPASS_DIR"
+echo "REMOTE_BACKUP_DIR: $REMOTE_BACKUP_DIR"
+echo "REMOTE_LATEST_FIR: $REMOTE_LATEST_DIR"
 
 # Tworzenie katalogu docelowego, jeśli nie istnieje
-ssh rt "mkdir -p $DEST_DIR ; mkdir -p $LATEST_DIR"
+#ssh rt "mkdir -p $REMOTE_BACKUP_DIR ; mkdir -p $REMOTE_LATEST_DIR"
 
 # Rsync z opcją backup i wersjonowaniem nazw
-rsync -av --backup --suffix=_$DATE ./ rt:$LATEST_DIR --backup-dir=$DEST_DIR
+rsync -av --backup --suffix=_$DATE $LOCAL_KEEPASS_DIR rt:$REMOTE_LATEST_DIR --backup-dir=$REMOTE_BACKUP_DIR
 
-aws s3 cp ./ s3://lobo101-keepass/$DATE --recursive --exclude "*" --include "*.kdbx"
+echo "Make backup $DATE"
+aws s3 cp $LOCAL_KEEPASS_DIR s3://lobo101-keepass/$DATE --recursive --exclude "*" --include "*.kdbx"
+
+echo "Sync to latest"
+aws s3 sync $LOCAL_KEEPASS_DIR s3://lobo101-keepass/latest
 
 clean_up
-
-
-
-
-
-
-
-
-
 
 
 # for lockfile in *.lock; do
