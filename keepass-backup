@@ -18,17 +18,18 @@ echo "LOCAL_KEEPASS_DIR: $LOCAL_KEEPASS_DIR"
 echo "REMOTE_BACKUP_DIR: $REMOTE_BACKUP_DIR"
 echo "REMOTE_LATEST_FIR: $REMOTE_LATEST_DIR"
 
-# Tworzenie katalogu docelowego, jeśli nie istnieje
-#ssh rt "mkdir -p $REMOTE_BACKUP_DIR ; mkdir -p $REMOTE_LATEST_DIR"
-
-# Rsync z opcją backup i wersjonowaniem nazw
-rsync -av --backup --suffix=_$DATE $LOCAL_KEEPASS_DIR rt:$REMOTE_LATEST_DIR --backup-dir=$REMOTE_BACKUP_DIR
-
 echo "Make backup $DATE"
 aws s3 cp $LOCAL_KEEPASS_DIR s3://lobo101-keepass/$DATE --recursive --exclude "*" --include "*.kdbx"
 
 echo "Sync to latest"
 aws s3 sync $LOCAL_KEEPASS_DIR s3://lobo101-keepass/latest
+
+
+# Tworzenie katalogu docelowego, jeśli nie istnieje
+#ssh rt "mkdir -p $REMOTE_BACKUP_DIR ; mkdir -p $REMOTE_LATEST_DIR"
+
+# Rsync z opcją backup i wersjonowaniem nazw
+rsync -av --backup --suffix=_$DATE $LOCAL_KEEPASS_DIR rt:$REMOTE_LATEST_DIR --backup-dir=$REMOTE_BACKUP_DIR
 
 clean_up
 
