@@ -1,7 +1,11 @@
 #!/bin/bash
 
-AWS_PROFILE=lobo101-keepass
-AWS_DEFAULT_REGION=eu-central-1
+export AWS_PROFILE=lobo101-keepass
+export AWS_DEFAULT_REGION=eu-central-1
+
+echo "AWS_PROFILE: $AWS_PROFILE"
+
+#aws sts get-caller-identity
 
 DATE=$(date +%Y-%m-%d-%H-%M)
 LOCAL_KEEPASS_DIR="$HOME/keepass"
