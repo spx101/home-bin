@@ -42,7 +42,7 @@ profile_name = args.profile_name
 def get_keepass_credentials(profile: str):
     command = [
         "keepassxc-cli", "show", "-k", os.path.expanduser("~/.keepass/rasp.key"),
-        "--no-password", "-s", os.path.expanduser("~/workspace/keepass/rasp.kdbx"), f"aws/{profile}"
+        "--no-password", "-s", os.path.expanduser("~/keepass/rasp.kdbx"), f"aws/{profile}"
     ]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
@@ -81,9 +81,9 @@ print_json(data=keepass_credentials)
 #     #if [ "$external_id" == "keepassxc" ]; then
 
 # # z tym config nie dziala
-# #>&2 ">>> keepassxc-cli show -k ~/.keepass/rasp.key --no-password -s ~/workspace/keepass/rasp.kdbx aws/$profile"
+# #>&2 ">>> keepassxc-cli show -k ~/.keepass/rasp.key --no-password -s ~/keepass/rasp.kdbx aws/$profile"
 
-#         data_json=$(keepassxc-cli show -k ~/.keepass/rasp.key --no-password -s ~/workspace/keepass/rasp.kdbx aws/$profile | yq -o=json)
+#         data_json=$(keepassxc-cli show -k ~/.keepass/rasp.key --no-password -s ~/keepass/rasp.kdbx aws/$profile | yq -o=json)
 #         if [ "$?" != "0" ] || [ "$data_json" == "null" ]; then
 #             echo "ERROR keepassxc aws/$profile"
 #             return 1
