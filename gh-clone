@@ -47,7 +47,13 @@ if [ -z "$GITHUB_TOKEN_TOKEN" ]; then
 fi
 
 if [ -z "$OWNER" ]; then
-    REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS -e "$EXCLUDE" | jq -r '.[].full_name')
+    echo "gh-repo-list -ojson $GH_CLONE_ARGS -e "$EXCLUDE""
+
+    if [ -z "$EXCLUDE" ]; then
+        EXCLUDE_ARGS="-e $EXCLUDE"
+    fi 
+    echo "gh-repo-list -ojson $GH_CLONE_ARGS $EXCLUDE_ARGS"
+    REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS "$EXCLUDE_ARGS" | jq -r '.[].full_name')
 else
     echo "RUN: gh-repo-list -ojson $GH_CLONE_ARGS"
     REPOS_LIST=$(gh repo list --json name,owner --jq '.[] | "\(.owner.login)/\(.name)"')
