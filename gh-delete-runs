@@ -1,8 +1,12 @@
 #!/bin/bash
 
-repo=$1
+echo "Example $0 - master"
+echo "Example $0 REPONAME main"
 
-if [ -z "$repo" ]; then
+repo=$1
+branch=$2
+
+if [ -z "$repo" ] || [ "$repo" == "-" ]; then
     repo=$(basename "$PWD")
 fi
 
@@ -13,7 +17,9 @@ echo "repository: $user/$repo"
 # gh api repos/$user/$repo/actions/runs --paginate -q '.workflow_runs[] | select(.head_branch == "main") | "\(.id)"' | xargs -I % gh api repos/$user/$repo/actions/runs/% -X DELETE
 
 # Pobierz listę ID workflow_runs dla głównej gałęzi
-run_ids=$(gh api repos/$user/$repo/actions/runs --paginate -q '.workflow_runs[] | select(.head_branch == "main") | .id')
+run_ids=$(gh api repos/$user/$repo/actions/runs --paginate -q ".workflow_runs[] | select(.head_branch == \"$branch\") | .id")
+
+echo $run_ids
 
 # Policz, ile runów zostanie usuniętych
 total=$(echo "$run_ids" | wc -l)
@@ -22,6 +28,7 @@ current=0
 # Usuń każde ID i zaktualizuj pasek postępu
 echo "Usuwanie workflow runs..."
 for run_id in $run_ids; do
+  echo $run_id
   gh api repos/$user/$repo/actions/runs/$run_id -X DELETE
   current=$((current + 1))
   # Wyświetl pasek postępu
