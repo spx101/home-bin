@@ -1,0 +1,19 @@
+#!/bin/bash
+
+directories=( "/home/lg/zaszyfrowany" "/home/lg/zaszyfrowany-docs" "/home/lg/zaszyfrowany-rasp" "/home/lg/bin" "/home/lg/scripts" )
+
+for base_dir in "${directories[@]}"; do
+    for dir in $(find "$base_dir" -type d -name ".git"); do
+        repo=$(dirname "$dir")
+        cd "$repo" || continue
+        status=$(git status --porcelain)
+        if [ -n "$status" ]; then
+            echo -e "Repository $repo \e[31mhas uncommitted or unpushed changes.\e[0m"
+        else
+            echo "Repository $repo is clean. Pulling latest changes..."
+            git pull
+        fi
+    done
+done
+
+~/bin/my-status
