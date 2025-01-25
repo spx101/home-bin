@@ -1,2 +1,4 @@
 #!/bin/bash
-keepassxc-cli show -k ~/.keepass/rasp.key --totp --no-password ~/keepass/rasp.kdbx aws/MFAUser | $HOME/bin/aws-refresh-creds.py lobo101-MFAUser
+#
+#
+$HOME/bin/aws-refresh-creds.py --encrypt -p lobo101-MFAUser --totp $(keepassxc-cli show -k ~/.keepass/rasp.key --totp --no-password ~/keepass/rasp.kdbx aws/MFAUser)

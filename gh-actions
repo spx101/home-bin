@@ -1,0 +1,13 @@
+#!/bin/bash
+set -o verbose
+current=$(basename "$PWD")
+repo="Ringier-Axel-Springer-PL/$current"
+url="https://github.com/$repo/actions"
+echo "REPO: $repo"
+echo "URL:  https://github.com/$repo/actions"
+
+gh run list -R $repo --json 'number,name,status,url,startedAt'
+
+
+
+

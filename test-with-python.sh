@@ -1,0 +1,1 @@
+/home/lg/scripts/bash/test-with-python.sh

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if git show-ref --quiet refs/heads/migration_github; then
+    git checkout migration_github
+else
+    git checkout -b migration_github
+fi
+
+#cp -r $HOME/workspace/awssrv-migrate-github/.github/workflows .github/
+git add * .github/workflows/*.yaml
+git commit -m "Add github actions"
+git push origin migration_github
+
+
+echo "### STATUS ###"
+git status
+
+echo "### YAML LINT ###"
+yamllint-rasp

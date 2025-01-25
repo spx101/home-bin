@@ -1,0 +1,15 @@
+#!/bin/bash
+
+current=$(basename "$PWD")
+repo="Ringier-Axel-Springer-PL/$current"
+url="https://github.com/$repo/actions"
+echo "https://github.com/$repo/actions"
+
+temp_file=$(mktemp)
+echo "Temporary file created at: $temp_file"
+
+gh run list -R $repo
+
+gh run list --limit 1 --json databaseId > $temp_file
+cat $temp_file | jq -r '.[0].databaseId'
+cat $temp_file | jq -r '.[0].databaseId' | xargs -I {} gh run rerun {}

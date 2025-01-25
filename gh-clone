@@ -1,14 +1,24 @@
 #!/bin/bash
 
 dowork() {
-    echo "Processing repo :: gh repo clone $1"
+    comm="git clone git@github.com:$1.git"
+    #comm="gh repo clone $1"
+    echo "Processing repo :: $comm"
+
     REPONAME=$(echo $1 | cut -d/ -f2)
     if [ -d $REPONAME ]; then
         (cd $REPONAME ; git pull)
+        echo "ok"
     else
-        gh repo clone $1
+        echo "$comm"
+        $comm
+        if [ "$?" -ne "0" ]; then
+            echo "retry $1"
+            sleep 5
+            $comm
+        fi
     fi
-    sleep 0.01
+    sleep 0.05
 }
 export -f dowork
 
@@ -17,10 +27,10 @@ PARENT_DIR=$(basename "$(dirname "$PWD")")
 NAMESPACE="$CURRENT_DIR"
 
 if [ -f ".github.yaml" ]; then
-    OWNER=$(cat .github.yaml | grep -i owner | cut -d':' -f2)
-    NAMESPACE=$(cat .github.yaml | grep -i namespace | cut -d':' -f2)
-    PREFIX=$(cat .github.yaml | grep -i prefix | cut -d':' -f2)
-    EXCLUDE=$(cat .github.yaml | grep -i exclude | cut -d':' -f2 | tr -d ' ')
+    OWNER=$(cat .github.yaml | yq '.owner // ""')
+    NAMESPACE=$(cat .github.yaml | yq '.namespace // ""')
+    PREFIX=$(cat .github.yaml | yq '.prefix // ""')
+    EXCLUDE=$(cat .github.yaml | yq '.exclude // ""')
 fi
 
 echo "Parent directory name: $PARENT_DIR"
@@ -47,19 +57,23 @@ if [ -z "$GITHUB_TOKEN_TOKEN" ]; then
 fi
 
 if [ -z "$OWNER" ]; then
-    echo "gh-repo-list -ojson $GH_CLONE_ARGS -e "$EXCLUDE""
-
-    if [ -z "$EXCLUDE" ]; then
+    if [ ! -z "$EXCLUDE" ]; then
         EXCLUDE_ARGS="-e $EXCLUDE"
-    fi 
+    fi
     echo "gh-repo-list -ojson $GH_CLONE_ARGS $EXCLUDE_ARGS"
-    REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS "$EXCLUDE_ARGS" | jq -r '.[].full_name')
+    REPOS_LIST=$(gh-repo-list -ojson $GH_CLONE_ARGS $EXCLUDE_ARGS | jq -r '.[].full_name')
 else
     echo "RUN: gh-repo-list -ojson $GH_CLONE_ARGS"
     REPOS_LIST=$(gh repo list --json name,owner --jq '.[] | "\(.owner.login)/\(.name)"')
 fi
 
-parallel --jobs 6 dowork ::: "${REPOS_LIST[@]}"
+# echo $REPOS_LIST
+# set -e
+# for i in $REPOS_LIST; do
+#     dowork $i
+# done
+
+parallel --jobs 1 dowork ::: "${REPOS_LIST[@]}"
 
 # echo "Processing repos with awsp- prefix"
 # REPOS_LIST=$(echo $REPOS | jq -r 'select(.nameWithOwner | startswith("Ringier-Axel-Springer-PL/awsp-")) | .nameWithOwner')

@@ -1,20 +1,36 @@
 #/bin/bash
 
 set -e
-
 action=$1
+echo "action: $action [OK]"
+
 CURRNET_DIR=$(pwd)
+PROJECT_NAME=$(basename "$CURRNET_DIR")
+echo "PROJECT_NAME: $PROJECT_NAME"
 
-mkdir -p .temp/
+TEMP_DIR="/tmp/$PROJECT_NAME"
+echo "CURRNET_DIR: $CURRNET_DIR"
 
-if [ "$action" == "install" ]; then
+VENV_DIR="/tmp/$PROJECT_NAME/venv"
+echo "TEMP_DIR: $TEMP_DIR"
 
-    rm -rf .temp/venv
+if [ "$action" == "clean" ]; then
+    rm -rf $TEMP_DIR
+    echo "clean [OK]"
+    exit 0
+fi
 
-    if [ ! -d ".temp/venv" ]; then
-        /opt/python/3.12.7/bin/python3 -m venv .temp/venv
-        source .temp/venv/bin/activate
-        pip install -r $HOME/gh/awsprovider/awssrv-action-aws-iam-lint/src/requirements.txt
+
+mkdir -p $TEMP_DIR
+
+if [ "$action" == "install" ] || [ ! -d "$VENV_DIR" ]; then
+
+    rm -rf $TEMP_DIR
+
+    if [ ! -d "$VENV_DIR" ]; then
+        /opt/sdk/python_v3.12/bin/python3 -m venv $VENV_DIR
+        source $VENV_DIR/bin/activate
+        pip install -r $HOME/gh/awsprovider/aws-action-iam-lint/src/requirements.txt
         pip install -r $HOME/gh/awsprovider/awssrv-action-render/src/requirements.txt
     fi
 
@@ -27,46 +43,60 @@ if [ "$action" == "clean" ]; then
     exit 0
 fi
 
-source .temp/venv/bin/activate
 
-#pip install -r $HOME/gh/awsprovider/awssrv-action-aws-iam-lint/src/requirements.txt
-#pip install -r $HOME/gh/awsprovider/awssrv-action-render/src/requirements.txt
+echo "#### VENV #####"
+echo "source $VENV_DIR/bin/activate"
+source $VENV_DIR/bin/activate
+echo "###############"
 
-echo "------------------------------------------------------------------------------------------------"
 
-RENDER_DIR="$CURRNET_DIR/.temp/render" ; mkdir -p $RENDER_DIR ; cp -r * $RENDER_DIR ; cd $RENDER_DIR
-~/gh/awsprovider/awssrv-action-render/src/main.sh
+echo "venv [OK]"
+echo ""
+echo "--- RENDER ---------------------------------------------------------------------------------------------"
+echo ""
+
+RENDER_DIR="$TEMP_DIR/ci-render"
+mkdir -p $RENDER_DIR
+cp -r * $RENDER_DIR
+cd $RENDER_DIR
+
+TEMPLATE_DIR=template ~/gh/awsprovider/awssrv-action-render/src/main.sh
 echo "render $? [OK]"
 cd $CURRNET_DIR
 
-echo "------------------------------------------------------------------------------------------------"
+echo "---IAM LINT ---------------------------------------------------------------------------------------------"
 
-SW="$CURRNET_DIR/.temp/aws-iam-lint" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
-GITHUB_OUTPUT=github_output ~/gh/awsprovider/awssrv-action-aws-iam-lint/src/main.sh
-echo "aws-iam-lint $? [OK]"
-cat github_output
+SW="$TEMP_DIR/ci-aws-iam-lint" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
+export GITHUB_OUTPUT="$TEMP_DIR/ci-aws-iam-lint/github_output"
+touch "$GITHUB_OUTPUT"
+~/gh/awsprovider/aws-action-iam-lint/src/main.sh
+echo "aws-iam-lint STATUS: $?"
+
+echo "GITHUB_OUTPUT:"
+cat $GITHUB_OUTPUT
+echo "ok"
 cd $CURRNET_DIR
 
 
-echo "------------------------------------------------------------------------------------------------"
+echo "--- CFN LINT ---------------------------------------------------------------------------------------------"
 
-SW="$CURRNET_DIR/.temp/cfn-lint" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
-IGNORE_RULES="E9000,E9001" TEMPLATE_DIR=template ~/gh/awsprovider/awssrv-action-cfn-lint/src/main.sh
-echo "cfn-lint $? [OK]"
+SW="$TEMP_DIR/ci-cfn-lint" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
+IGNORE_RULES="E9000,E9001" TEMPLATE_DIR=template ~/gh/awsprovider/aws-action-cfn-lint/src/main.sh
+echo "cfn-lint STATUS: $?"
+cd $CURRNET_DIR
+
+echo "---CFN GUARD ---------------------------------------------------------------------------------------------"
+
+SW="$TEMP_DIR/ci-cfn-guard" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
+~/gh/awsprovider/aws-action-cfn-guard/src/main.sh
+echo "cfn-guard STATUS: $?"
 cd $CURRNET_DIR
 
 echo "------------------------------------------------------------------------------------------------"
 
-SW="$CURRNET_DIR/.temp/cfn-guard" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
-~/gh/awsprovider/awssrv-action-cfn-guard/src/main.sh
-echo "cfn-guard $? [OK]"
-cd $CURRNET_DIR
-
-echo "------------------------------------------------------------------------------------------------"
-
-SW="$CURRNET_DIR/.temp/lint-yaml" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
+SW="$TEMP_DIR/ci-lint-yaml" ; mkdir -p $SW ; cp -r $RENDER_DIR/* $SW ; cd $SW
 ~/gh/sdk-action/sdk-action-lint-yaml/src/config.yaml -f parsable .
-echo "lint-yaml $? [OK]"
+echo "lint-yaml STATUS: $?"
 cd $CURRNET_DIR
 
 echo "------------------------------------------------------------------------------------------------"
