@@ -1,6 +1,6 @@
 #!/bin/bash
 
-directories=( "/home/lg/zaszyfrowany" "/home/lg/bin" "/home/lg/scripts" )
+directories=( "/home/lg/zaszyfrowany" "/home/lg/zaszyfrowany-docs" "/home/lg/zaszyfrowany-rasp" "/home/lg/bin" "/home/lg/scripts" )
 
 for base_dir in "${directories[@]}"; do
     for dir in $(find "$base_dir" -type d -name ".git"); do
