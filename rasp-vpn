@@ -1,0 +1,8 @@
+#!/bin/bash
+
+KDBX_KEY="$HOME/.keepass/rasp.key"
+KDBX_FILE="$HOME/keepass/rasp.kdbx"
+KDBX_ITEM="rasp/vpn"
+OPT="-k $KDBX_KEY --no-password $KDBX_FILE $KDBX_ITEM"
+
+keepassxc-cli clip --totp $OPT
