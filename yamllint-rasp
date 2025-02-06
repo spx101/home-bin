@@ -10,6 +10,6 @@ if [ ! -d $HOME/sdk-action-lint-yaml ]; then
     gh repo clone Ringier-Axel-Springer-PL/sdk-action-lint-yaml $HOME/sdk-action-lint-yaml -- --depth 1
 fi
 
-yamllint -c $HOME/sdk-action-lint-yaml/src/config.yaml .
+yamllint --no-warnings -c $HOME/sdk-action-lint-yaml/src/config.yaml .
 
 
