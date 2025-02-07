@@ -92,12 +92,11 @@ echo "Installing required Python packages..."
 /opt/python/${PYTHON_PACKAGE_VERSION}/bin/python3 -m pip install --upgrade pip
 /opt/python/${PYTHON_PACKAGE_VERSION}/bin/python3 -m pip install pyyaml
 
+echo "------------------------------------------------------------------------"
 echo "Python ${PYTHON_PACKAGE_VERSION} installation completed successfully."
+echo "------------------------------------------------------------------------"
 
-
-
-###
-echo "RUN TESTS .."
+# echo "RUN TESTS .."
 # ls /opt/python/*/bin/python3 | sort | while read i; do echo -n "$i  " ; $i -m timeit -s "arr = list(range(10**6))" "sum(x**2 for x in arr)" ;  done
 # "import random; arr = [random.randint(1, 10**6) for _ in range(10**6)]" "sorted(arr)"
 #
