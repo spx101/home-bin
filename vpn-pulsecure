@@ -1,0 +1,20 @@
+#!/bin/bash
+
+sudo rm /var/lib/pulsesecure/pulse/*
+sudo cp $HOME/connstore.dat /var/lib/pulsesecure/pulse/
+sudo systemctl restart pulsesecure
+
+status=$(busctl list| grep net.psecure.pulse)
+
+timeout=30
+while [[ $timeout -gt 0 ]]; do
+    status=$(busctl list | grep net.psecure.pulse)
+    if [[ -n $status ]]; then
+        break
+    fi
+    sleep 0.5
+    ((timeout--))
+    echo -n "."
+done
+
+/snap/bin/pulsesecure.pulseUI
