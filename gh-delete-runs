@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Example $0 - master"
+echo "Example $0 - ALL"
 echo "Example $0 REPONAME main"
 
 repo=$1
@@ -17,7 +18,11 @@ echo "repository: $user/$repo"
 # gh api repos/$user/$repo/actions/runs --paginate -q '.workflow_runs[] | select(.head_branch == "main") | "\(.id)"' | xargs -I % gh api repos/$user/$repo/actions/runs/% -X DELETE
 
 # Pobierz listę ID workflow_runs dla głównej gałęzi
-run_ids=$(gh api repos/$user/$repo/actions/runs --paginate -q ".workflow_runs[] | select(.head_branch == \"$branch\") | .id")
+if [ "$2" == "ALL" ]; then
+    run_ids=$(gh api repos/$user/$repo/actions/runs --paginate -q ".workflow_runs[] | .id")
+else
+    run_ids=$(gh api repos/$user/$repo/actions/runs --paginate -q ".workflow_runs[] | select(.head_branch == \"$branch\") | .id")
+fi
 
 echo $run_ids
 

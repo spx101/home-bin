@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+
+def show_menu(options, prompt="Wybierz opcję:"):
+    """
+    Wyświetla menu z opcjami za pomocą fuzzel i zwraca wybraną opcję.
+
+    :param options: Lista napisów reprezentujących opcje.
+    :param prompt: Tekst wyświetlany jako prompt w fuzzel.
+    :return: Wybrana opcja (jako napis) lub pusty ciąg jeśli nic nie wybrano.
+    """
+    # Łączymy opcje w jeden ciąg znaków oddzielony znakami nowej linii
+    input_str = "\n".join(options)
+
+    try:
+        result = subprocess.run(
+            ["fuzzel", '--dmenu', "-p", prompt],
+            input=input_str.encode('utf-8'),
+            stdout=subprocess.PIPE,
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print("Wystąpił błąd podczas uruchamiania fuzzel:", e, file=sys.stderr)
+        sys.exit(1)
+
+    # Zwracamy wybraną opcję po usunięciu zbędnych białych znaków
+    return result.stdout.decode('utf-8').strip()
+
+
+def run_program(command):
+    """
+    Uruchamia podany program.
+
+    :param command: Polecenie (jako napis) do uruchomienia.
+    """
+    try:
+        # Używamy Popen, aby uruchomić program w tle
+        subprocess.Popen(command, shell=True)
+    except Exception as e:
+        print("Wystąpił błąd podczas uruchamiania programu:", e, file=sys.stderr)
+
+
+def main():
+    # Słownik łączący nazwę opcji z poleceniem do wykonania
+    options = {
+        "password": "~/bin/rasp-password",
+        "vpn token": "~/bin/rasp-vpn"
+    }
+
+    # Pobieramy listę opcji (kluczy słownika)
+    menu_options = list(options.keys())
+
+    # Wyświetlamy menu i pobieramy wybór użytkownika
+    selected = show_menu(menu_options, prompt="Wybierz program do uruchomienia:")
+
+    if selected in options:
+        command = options[selected]
+        print("Uruchamiam:", command)
+        run_program(command)
+    else:
+        print("Nie wybrano żadnej opcji lub opcja jest niepoprawna.")
+
+if __name__ == '__main__':
+    main()
