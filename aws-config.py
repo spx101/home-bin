@@ -52,3 +52,4 @@ if not profile_name:
 else:
     profile_data = get_aws_profile(profile_name)
     print_json(data=profile_data)
+

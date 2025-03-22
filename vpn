@@ -1,8 +1,29 @@
 #!/bin/bash
 
+#set -x
+echo "remove files $HOME/GP_HTML/*"
+rm -rf $HOME/GP_HTML/*
+
+echo "Disconnect"
 globalprotect disconnect
-systemctl restart --user gpa 
+
+echo "Restart gpd.service"
+sudo systemctl restart gpd.service
+sleep 0.5
+
+echo "restart gpa.service"
+systemctl restart --user gpa
+sleep 0.5
+
+#globalprotect disconnect
+#killall globalprotect
+#systemctl restart --user gpa
+
+$HOME/bin/rasp-vpn &
 globalprotect connect -p vpn-corp.ringieraxelspringer.pl
 
-$HOME/bin/rasp-vpn
+echo "OK .."
+
+#GP_HTML/saml.html
+#$HOME/bin/rasp-vpn
 
