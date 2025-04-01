@@ -1,0 +1,5 @@
+#!/bin/bash
+
+kubectl -n monitoring get pods -l "app.kubernetes.io/name=grafana"
+
+kubectl -n monitoring logs -l "app.kubernetes.io/name=grafana" -f
