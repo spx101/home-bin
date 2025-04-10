@@ -1,1 +1,1 @@
-/home/lg/scripts/sdk-helmchart/eks-ns-create-pr.sh
+/home/lg/scripts/sdk/eks-ns-create-pr.sh

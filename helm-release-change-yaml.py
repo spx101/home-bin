@@ -1,1 +1,1 @@
-/home/lg/scripts/sdk-helmchart/wrapper
+/home/lg/scripts/sdk/wrapper

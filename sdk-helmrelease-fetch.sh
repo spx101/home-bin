@@ -1,0 +1,1 @@
+/home/lg/scripts/sdk/sdk-helmrelease-fetch.sh

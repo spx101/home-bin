@@ -1,0 +1,1 @@
+/home/lg/scripts/sdk/sdk-list-sdk-helmchart.sh
