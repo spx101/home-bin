@@ -4,12 +4,14 @@
 echo "remove files $HOME/GP_HTML/*"
 rm -rf $HOME/GP_HTML/*
 
+sudo systemctl restart gpd.service
+
 echo "Disconnect"
 globalprotect disconnect
 
 echo "Restart gpd.service"
 sudo systemctl restart gpd.service
-sleep 0.5
+sleep 0.2
 
 echo "restart gpa.service"
 systemctl restart --user gpa
@@ -26,4 +28,6 @@ echo "OK .."
 
 #GP_HTML/saml.html
 #$HOME/bin/rasp-vpn
+
+echo "file:///home/lg/GP_HTML/saml.html"
 

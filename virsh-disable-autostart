@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for VM in $(virsh list --all --name); do
+    virsh autostart --disable "$VM"
+done

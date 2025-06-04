@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for VM in $(virsh list --state-running --name); do
+    virsh shutdown "$VM"
+done
