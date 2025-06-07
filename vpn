@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #set -x
+
 echo "remove files $HOME/GP_HTML/*"
 rm -rf $HOME/GP_HTML/*
 
@@ -30,4 +31,3 @@ echo "OK .."
 #$HOME/bin/rasp-vpn
 
 echo "file:///home/lg/GP_HTML/saml.html"
-

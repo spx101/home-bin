@@ -1,27 +1,32 @@
 #!/bin/bash
 
+source $HOME/.bash_functions
+
 ACION=$1
 ENDPOINT=vpn-corp.ringieraxelspringer.pl
 HIDREPORTER=/usr/libexec/openconnect/hipreport.sh
-export WEBKIT_DISABLE_COMPOSITING_MODE=1
+export WEBKIT_DISABLE_COMPOSITING_MODE=0
 
 sudo systemctl stop rasp-vpn.service
 #set -x
 ENV_FILE="/home/lg/.rasp-vpn.env"
 
 cleanup() {
+    pkill -f "keepassxc-cli clip"
     echo "Czyszczenie... Usuwanie pliku: $ENV_FILE"
-    rm -f "$ENV_FILE"
 }
 trap cleanup EXIT
-
 
 echo "RASP_ENDPOINT=$ENDPOINT" > $ENV_FILE
 echo "HIDREPORTER=$HIDREPORTER" >> $ENV_FILE
 
-$HOME/bin/rasp-vpn &
-gp-saml-gui -q $ENDPOINT | grep "=" >> $ENV_FILE
-/bin/killall rasp-vpn
+rasp-vpn-totp &
+
+source ~/scripts/gp-saml-gui/.venv/bin/activate
+$HOME/scripts/gp-saml-gui/gp-saml-gui/gp_saml_gui.py -q $ENDPOINT | grep "=" >> $ENV_FILE
+deactivate
+
+pkill -f "keepassxc-cli clip"
 
 sed -i 's/USER=/RASP_USER=/g' $ENV_FILE
 

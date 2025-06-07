@@ -72,14 +72,35 @@ sudo chown -R $(id -u):$(id -g) "/usr/src/Python-${PYTHON_PACKAGE_VERSION}"
 cd "/usr/src/Python-${PYTHON_PACKAGE_VERSION}"
 
 echo "Configuring build options..."
+
+# --with-lto \                  # Włącza optymalizację Link Time Optimization
+# --enable-pgo \                # Włącza Profile-Guided Optimization (najlepsze efekty w połączeniu z --enable-optimizations)
+# --with-computed-gotos \       # Wykorzystuje obliczone instrukcje goto dla szybszej pętli interpretacji
+# --with-valgrind \             # Dodaje obsługę Valgrinda do debugowania i profilowania
+# --with-system-expat \
+# --with-system-ffi \
+# --without-doc-strings       # Usuwa łańcuchy dokumentacji, zmniejszając rozmiar interpretera
+# --without-pymalloc          # Wyłącza specjalny alokator pamięci Pythona (może być szybszy w niektórych zastosowaniach)
+# CFLAGS="-march=native -O3"  # Optymalizuje pod kątem konkretnej architektury procesora
+
 ./configure \
     --prefix="/opt/python/${PYTHON_PACKAGE_VERSION}" \
     --enable-optimizations \
-    --enable-ipv6 \
-    --with-ensurepip=install \
+    --disable-ipv6 \
+    --without-ensurepip \
     --enable-loadable-sqlite-extensions \
     --disable-shared \
     --disable-test-modules \
+    --with-lto \
+    --enable-pgo \
+    --with-computed-gotos \
+    --with-system-expat \
+    --with-system-ffi \
+    --without-doc-strings \
+    --without-pymalloc \
+    --without-tk \
+    --without-dev-mode \
+    CFLAGS="-Os -fdata-sections -ffunction-sections" \
     LDFLAGS="-Wl,-rpath=/opt/python/${PYTHON_PACKAGE_VERSION}/lib,--disable-new-dtags"
 
 echo "Building Python..."
@@ -100,3 +121,13 @@ echo "------------------------------------------------------------------------"
 # ls /opt/python/*/bin/python3 | sort | while read i; do echo -n "$i  " ; $i -m timeit -s "arr = list(range(10**6))" "sum(x**2 for x in arr)" ;  done
 # "import random; arr = [random.randint(1, 10**6) for _ in range(10**6)]" "sorted(arr)"
 #
+
+# Po kompilacji
+# Po instalacji możesz dodatkowo zmniejszyć rozmiar poprzez:
+
+# Usunięcie plików .pyc i pycache:
+#> find /opt/python/${PYTHON_PACKAGE_VERSION} -name "*.pyc" -delete
+# Stripowanie symboli:
+#> find /opt/python/${PYTHON_PACKAGE_VERSION} -type f -name "*.so" -exec strip {} \;
+# Usunięcie testów:
+#> rm -rf /opt/python/${PYTHON_PACKAGE_VERSION}/lib/python*/test/
