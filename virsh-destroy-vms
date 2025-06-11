@@ -1,3 +1,17 @@
 #!/bin/bash
 
-for vm in $(virsh list --all --name); do virsh domstate "$vm" | grep -q running && virsh destroy "$vm"; virsh undefine "$vm" --remove-all-storage; done
+list_vm="$1"
+if [ "$list_vm" == "" ];then
+    list_vm=$(virsh list --all --name)
+    if [ -z "$list_vm" ]; then
+        echo "Brak maszyn wirtualnych"
+        exit 0
+    fi
+    echo "$list_vm"
+    read -p "Usunąć wszystkie maszyny wirtualne? [t/N]: " confirm
+    [[ "$confirm" != "t" && "$confirm" != "T" ]] && exit 0
+fi
+
+for vm in $list_vm; do
+    virsh domstate "$vm" | grep -q running && virsh destroy "$vm"; virsh undefine "$vm" --remove-all-storage;
+done
