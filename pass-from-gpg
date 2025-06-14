@@ -1,11 +1,12 @@
 #!/bin/bash
 
-killall -u $USER xclip 1>/dev/null 2>/dev/null
+# Na Wayland xclip zazwyczaj nie działa, ponieważ obsługuje tylko X11.
+# Na Wayland polecane są narzędzia takie jak wl-clipboard (wl-copy, wl-paste).
 
-set -e
-set -o pipefail
+#killall -u $USER xclip 1>/dev/null 2>/dev/null
+
+set -eo pipefail
 app="pass-from-gpg"
-
 
 FILE="$HOME/zaszyfrowany/$1"
 if [ ! -f "$FILE" ]; then
@@ -16,9 +17,7 @@ fi
 
 notify-send -t 2000 -i ~/icons/dialog-password.png -a pass-from-gpg "waiting for yubikey"
 
-
 pass=$(gpg -d $FILE 2>/dev/null | grep 'password:' | cut -d":" -f2 | tr -d '[:space:]' | tr -d '\n')
-
 
 #echo $pass
 
@@ -28,14 +27,21 @@ if [ -z "$pass" ]; then
     exit 0
 fi
 
-echo -n $pass | xclip -r -l 5 -selection clipboard
+#echo -n $pass | xclip -r -l 5 -selection clipboard
+echo -n $pass | wl-copy
 notify-send -t 1000 -a $app -i ~/icons/selection-checked.png "pass copied"
 
 #xdotool key ctrl+v
-sleep 5
+i=0
+while [ $i -lt 5 ]; do
+    sleep 1
+    i=$((i + 1))
+    echo "Waiting $i"
+done
 
 notify-send -t 1000 -a $app -i ~/icons/selection-checked.png "clean"
-echo -n "" | xclip -l 1 -selection clipboard
+#echo -n "" | xclip -l 1 -selection clipboard
+trap 'echo -n "-" | wl-copy' EXIT
 
 #notify-send -t 1000 -a $app -i ~/icons/selection-checked.png "OK"
 

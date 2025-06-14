@@ -1,0 +1,1 @@
+/home/lg/spx101/dotfiles/.config/wofi/wofi-rasp-menu.sh
