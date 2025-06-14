@@ -15,3 +15,6 @@ fi
 for vm in $list_vm; do
     virsh domstate "$vm" | grep -q running && virsh destroy "$vm"; virsh undefine "$vm" --remove-all-storage;
 done
+
+
+virsh list
